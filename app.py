@@ -1,19 +1,12 @@
 #Recipe for apache: http://webpy.org/cookbook/mod_wsgi-apache
 
-import web, os
-import sqlite3
+import web, os, sys
+sys.path.append(os.path.dirname(__file__))
+import webpages
 
 urls = (
-	'/.*', 'TestPage',
+	'/.*', 'webpages.TestPage',
 	)
-
-class TestPage:
-	def GET(self):
-		db = web.ctx.db
-		results = db.select("data", limit = 100)
-		names = [tmp["name"] for tmp in results]
-
-		return "<br/>".join(names)
 
 def InitDatabaseConn():
 	curdir = os.path.dirname(__file__)
