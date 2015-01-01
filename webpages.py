@@ -1,9 +1,9 @@
-import web
+import web, app
 
 class TestPage:
 	def GET(self):
 		db = web.ctx.db
 		results = db.select("data", limit = 100)
-		names = [tmp["name"] for tmp in results]
 
-		return "<br/>".join(names)
+		return app.RenderTemplate("helloworld.html", test=results)
+
