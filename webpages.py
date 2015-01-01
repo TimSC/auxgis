@@ -1,4 +1,4 @@
-import web, app, math
+import web, app, math, json
 
 class DistLatLon(object):
 	#Based on http://stackoverflow.com/a/1185413/4288232
@@ -64,11 +64,18 @@ class Nearby:
 	def GET(self):
 		db = web.ctx.db
 		webinput = web.input()
-		lat = float(webinput["lat"])
-		lon = float(webinput["lon"])
+		try:
+			lat = float(webinput["lat"])
+		except:
+			lat = None
+		try:
+			lon = float(webinput["lon"])
+		except:
+			lon = None
 		records = GetRecordsNear(db, lat, lon)
 		
-		return app.RenderTemplate("nearby.html", records=records, webinput=webinput)
+		return app.RenderTemplate("nearby.html", records=records, 
+			webinput=webinput, lat=lat, lon=lon)
 
 class Record:
 	def GET(self):
@@ -80,6 +87,11 @@ class Record:
 		dataResults = db.select("data", where="id=$id", vars=vars2, limit = 1)
 		dataResults = list(dataResults)
 		record = dict(dataResults[0])
+
+		extendedData = json.loads(record["extended"])
+		for key in extendedData:
+			record[key] = extendedData[key]
+		del record["extended"]
 
 		return app.RenderTemplate("record.html", record=record, webinput=webinput)
 

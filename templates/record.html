@@ -1,3 +1,8 @@
 {{record.name}}<br/>
+
+{%for k, v in record.iteritems()%}
+{{k}} = {{v}}<br/>
+{%endfor%}
+
 <a href="nearby?lat={{record.lat}}&lon={{record.lon}}">Nearby points</a>
 
