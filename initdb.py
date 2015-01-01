@@ -17,7 +17,7 @@ if __name__=="__main__":
 	c.execute('''CREATE VIRTUAL TABLE pos USING rtree(id, minLat, maxLat, minLon, maxLon);''')
 
 	c.execute('''CREATE TABLE data
-		         (id ROWID, name text, source text, lat real, lon real, extended text);''')
+		         (id INTEGER PRIMARY KEY AUTOINCREMENT, name text, source text, lat real, lon real, extended text);''')
 
 	conn.commit()
 

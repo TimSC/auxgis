@@ -1,5 +1,6 @@
 Hello world {{webinput.lat}} {{webinput.lon}}<br/>
+{{test|length}}<br/>
 {%for record in test%}
-{{record["name"]}}<br/>
+{{record.name}} {{record.lat}} {{record.lon}}<br/>
 {%endfor%}
 
