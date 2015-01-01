@@ -7,7 +7,7 @@ import webpages
 from jinja2 import Environment,FileSystemLoader
 
 urls = (
-	'/', 'webpages.FrontPage',
+	'/', 'webpages.Nearby',
 	'/nearby', 'webpages.Nearby',
 	'/record', 'webpages.Record',
 	)

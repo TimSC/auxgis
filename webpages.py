@@ -27,14 +27,31 @@ class DistLatLon(object):
 def GetRecordsNear(db, lat, lon):
 	latHWidth = 0.05
 	lonHWidth = 0.1
+	vrs = {}
+	conds = []
 
-	vrs = {'minLat':lat-latHWidth, 'maxLat':lat+latHWidth, 'minLon':lon-lonHWidth, 'maxLon': lon+lonHWidth}
-	cond = "minLat>=$minLat AND maxLat<=$maxLat AND minLon>=$minLon AND maxLon<=$maxLon"
-	#cond = "1=1"
+	if lat is not None:
+		conds.append("minLat>=$minLat AND maxLat<=$maxLat")
+		vrs['minLat'] = lat-latHWidth
+		vrs['maxLat'] = lat+latHWidth
+
+	if lon is not None:
+		conds.append("minLon>=$minLon AND maxLon<=$maxLon")
+		vrs['minLon'] = lon-lonHWidth
+		vrs['maxLon'] = lon+lonHWidth
+	
+	if len(conds) > 0:
+		cond = " AND ".join(conds)
+	else:
+		cond = "1=1"
+
 	results = db.select("pos", where=cond, vars=vrs, limit = 1000)
 	sortableResults = []
 
-	calcDist = DistLatLon(lat, lon)
+	if lat is not None and lon is not None:
+		calcDist = DistLatLon(lat, lon)
+	else:
+		calcDist = None
 
 	for record in results:
 		rowId = record["id"]
@@ -44,9 +61,12 @@ def GetRecordsNear(db, lat, lon):
 		dataResults = list(dataResults)
 		if len(dataResults) == 0: continue
 		record = dict(dataResults[0])
-		dist = calcDist.Dist(record["lat"], record["lon"])
-		record["dist"] = dist
+		if calcDist is not None:
+			dist = calcDist.Dist(record["lat"], record["lon"])
+		else:
+			dist = None
 
+		record["dist"] = dist
 		sortableResults.append((dist, record))
 
 	sortableResults.sort()
