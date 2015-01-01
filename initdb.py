@@ -2,8 +2,14 @@ import sqlite3
 
 if __name__=="__main__":
 	conn = sqlite3.connect('auxgis.db')
+	c = conn.cursor()
 
-	# Create table
-	c.execute('''CREATE TABLE stocks
-		         (date text, trans text, symbol text, qty real, price real)''')
+	c.execute('''DROP TABLE pos;''')
+	c.execute('''DROP TABLE data;''')
+
+	# Create tables
+	c.execute('''CREATE VIRTUAL TABLE pos USING rtree(id, minLat, maxLat, minLon, maxLon);''')
+
+	c.execute('''CREATE TABLE data
+		         (id ROWID, name text, lat real, lon real, extended text);''')
 
