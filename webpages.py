@@ -24,39 +24,63 @@ class DistLatLon(object):
 			return 0.
 		return math.pow(dist2, 0.5)
 
-class TestPage:
+def GetRecordsNear(db, lat, lon):
+	latHWidth = 0.05
+	lonHWidth = 0.1
+
+	vrs = {'minLat':lat-latHWidth, 'maxLat':lat+latHWidth, 'minLon':lon-lonHWidth, 'maxLon': lon+lonHWidth}
+	cond = "minLat>=$minLat AND maxLat<=$maxLat AND minLon>=$minLon AND maxLon<=$maxLon"
+	#cond = "1=1"
+	results = db.select("pos", where=cond, vars=vrs, limit = 1000)
+	sortableResults = []
+
+	calcDist = DistLatLon(lat, lon)
+
+	for record in results:
+		rowId = record["id"]
+		
+		vars2 = {"id": rowId}
+		dataResults = db.select("data", where="id=$id", vars= vars2, limit = 100)
+		dataResults = list(dataResults)
+		if len(dataResults) == 0: continue
+		record = dict(dataResults[0])
+		dist = calcDist.Dist(record["lat"], record["lon"])
+		record["dist"] = dist
+
+		sortableResults.append((dist, record))
+
+	sortableResults.sort()
+	records = [tmp[1] for tmp in sortableResults]
+	return records
+
+class FrontPage:
+	def GET(self):
+		db = web.ctx.db
+		webinput = web.input()
+		
+		return "Front page"
+
+class Nearby:
 	def GET(self):
 		db = web.ctx.db
 		webinput = web.input()
 		lat = float(webinput["lat"])
 		lon = float(webinput["lon"])
+		records = GetRecordsNear(db, lat, lon)
+		
+		return app.RenderTemplate("nearby.html", records=records, webinput=webinput)
 
-		latHWidth = 0.05
-		lonHWidth = 0.1
+class Record:
+	def GET(self):
+		db = web.ctx.db
+		webinput = web.input()
+		rowId = float(webinput["record"])
 
-		vrs = {'minLat':lat-latHWidth, 'maxLat':lat+latHWidth, 'minLon':lon-lonHWidth, 'maxLon': lon+lonHWidth}
-		cond = "minLat>=$minLat AND maxLat<=$maxLat AND minLon>=$minLon AND maxLon<=$maxLon"
-		#cond = "1=1"
-		results = db.select("pos", where=cond, vars=vrs, limit = 1000)
-		sortableResults = []
+		vars2 = {"id": rowId}
+		dataResults = db.select("data", where="id=$id", vars=vars2, limit = 1)
+		dataResults = list(dataResults)
+		record = dict(dataResults[0])
 
-		calcDist = DistLatLon(lat, lon)
-	
-		for record in results:
-			rowId = record["id"]
-			
-			vars2 = {"id": rowId}
-			dataResults = db.select("data", where="id=$id", vars= vars2, limit = 100)
-			dataResults = list(dataResults)
-			if len(dataResults) == 0: continue
-			record = dict(dataResults[0])
-			dist = calcDist.Dist(record["lat"], record["lon"])
-			record["dist"] = dist
+		return app.RenderTemplate("record.html", record=record, webinput=webinput)
 
-			sortableResults.append((dist, record))
-
-		sortableResults.sort()
-		records = [tmp[1] for tmp in sortableResults]
-
-		return app.RenderTemplate("helloworld.html", records=records, webinput=webinput)
 

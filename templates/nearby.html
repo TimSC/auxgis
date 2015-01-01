@@ -1,0 +1,7 @@
+Number of records: {{records|length}}<br/>
+<table>
+{%for record in records%}
+<tr><td>{{'%0.1f' % record.dist}}</td><td><a href="record?record={{record.id}}">{{record.name}}</a></td></tr>
+{%endfor%}
+</table>
+

@@ -7,7 +7,9 @@ import webpages
 from jinja2 import Environment,FileSystemLoader
 
 urls = (
-	'/.*', 'webpages.TestPage',
+	'/', 'webpages.FrontPage',
+	'/nearby', 'webpages.Nearby',
+	'/record', 'webpages.Record',
 	)
 
 def RenderTemplate(template_name, **context):
