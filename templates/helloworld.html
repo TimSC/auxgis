@@ -1,6 +1,5 @@
-Hello world {{webinput.lat}} {{webinput.lon}}<br/>
-{{test|length}}<br/>
-{%for record in test%}
-{{record.name}} {{record.lat}} {{record.lon}}<br/>
+Number of records: {{records|length}}<br/>
+{%for record in records%}
+{{record.dist}} {{record.name}}<br/>
 {%endfor%}
 
