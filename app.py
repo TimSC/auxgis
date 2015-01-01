@@ -27,6 +27,7 @@ def InitDatabaseConn():
 	curdir = os.path.dirname(__file__)
 	web.ctx.db = web.database(dbn='sqlite', db=os.path.join(curdir, 'auxgis.db'))
 
+web.config.debug = True
 app = web.application(urls, globals())
 curdir = os.path.dirname(__file__)
 app.add_processor(web.loadhook(InitDatabaseConn))
