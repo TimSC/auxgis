@@ -4,20 +4,19 @@ class DistLatLon(object):
 	#Based on http://stackoverflow.com/a/1185413/4288232
 
 	def __init__(self, latDeg, lonDeg):
-		R = 6371.
+		self.R = 6371.
 		lat = math.radians(latDeg)
 		lon = math.radians(lonDeg)
-		self.x = R * math.cos(lat) * math.cos(lon)
-		self.y = R * math.cos(lat) * math.sin(lon)
-		self.z = R * math.sin(lat)
+		self.x = self.R * math.cos(lat) * math.cos(lon)
+		self.y = self.R * math.cos(lat) * math.sin(lon)
+		self.z = self.R * math.sin(lat)
 
 	def Dist(self, latDeg, lonDeg):
-		R = 6371.
 		lat = math.radians(latDeg)
 		lon = math.radians(lonDeg)
-		x2 = R * math.cos(lat) * math.cos(lon)
-		y2 = R * math.cos(lat) * math.sin(lon)
-		z2 = R * math.sin(lat)
+		x2 = self.R * math.cos(lat) * math.cos(lon)
+		y2 = self.R * math.cos(lat) * math.sin(lon)
+		z2 = self.R * math.sin(lat)
 		
 		dist2 = math.pow(self.x - x2, 2.) + math.pow(self.y - y2, 2.) + math.pow(self.z - z2, 2.)
 		if dist2 < 0.:
