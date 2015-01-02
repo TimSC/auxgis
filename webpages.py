@@ -114,4 +114,23 @@ class Record:
 
 		return app.RenderTemplate("record.html", record=record, webinput=webinput)
 
+class SearchNear:
+	def GET(self):
+		db = web.ctx.db
+		webinput = web.input()
+
+		lat = 53.
+		lon = -1.2
+		if "lat" in webinput:
+			try:
+				lat = float(webinput["lat"])
+			except:
+				pass
+		if "lon" in webinput:
+			try:
+				lon = float(webinput["lon"])
+			except:
+				pass
+
+		return app.RenderTemplate("searchnear.html", webinput=webinput, lat=lat, lon=lon)
 
