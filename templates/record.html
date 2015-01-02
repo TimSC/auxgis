@@ -2,7 +2,7 @@
 <head>
 <meta charset="utf-8"/> 
 <title>{{record.name|e}}</title>
-<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+<link rel="stylesheet" href="static/Leaflet/dist/leaflet.css" />
 </head>
 <body>
 
@@ -28,8 +28,6 @@
 
 	var marker = L.marker([{{record.lat}}, {{record.lon}}]).addTo(map);
 
-//	var map1 = L.map('map1').setView([51.505, -0.09], 13);
-//	L.tileLayer(MB_URL, {attribution: MB_ATTR, id: 'examples.map-i875mjb7'}).addTo(map1);
 </script>
 
 

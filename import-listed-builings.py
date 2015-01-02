@@ -96,6 +96,9 @@ class ParseKml(object):
 			pn = None
 			if self.placeName is not None:
 				pn = TitleCase(self.placeName)
+				pn = pn.replace("\n", "")
+				pn = pn.replace("\r", "")
+
 			#print self.placeName, self.shape, self.extendedData
 			self.db.HandlePlacemark(pn, self.shape, self.extendedData)
 			self.extendedData = {}

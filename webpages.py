@@ -93,7 +93,7 @@ class Nearby:
 			lon = None
 		records = GetRecordsNear(db, lat, lon)
 		
-		return app.RenderTemplate("nearby.html", records=records, 
+		return app.RenderTemplate("nearby.html", records=records[:100], 
 			webinput=webinput, lat=lat, lon=lon)
 
 class Record:
