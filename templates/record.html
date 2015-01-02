@@ -1,8 +1,42 @@
-{{record.name}}<br/>
+<html>
+<head>
+<meta charset="utf-8"/> 
+<title>{{record.name|e}}</title>
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+</head>
+<body>
+
+<h2>{{record.name|e}}</h2>
 
 {%for k, v in record.iteritems()%}
 {{k}} = {{v}}<br/>
 {%endfor%}
 
+<script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+
+<div id="map" style="height:380px;"></div>
+
+
+<script>
+
+	var map = L.map('map').setView([{{record.lat}}, {{record.lon}}], 15);
+
+	L.tileLayer('http://draco.openstreetmap.org/sv-2013-11/{z}/{x}/{y}.png', {
+		attribution: 'Map data &copy; <a href="http://www.ordnancesurvey.co.uk/business-and-government/products/opendata-products.html">Ordnance Survey Data</a> © Crown copyright and database right 2013. Hosted by <a href="http://www.openstreetmap.org/">OSM</a>.',
+		maxZoom: 17
+	}).addTo(map);
+
+	var marker = L.marker([{{record.lat}}, {{record.lon}}]).addTo(map);
+
+//	var map1 = L.map('map1').setView([51.505, -0.09], 13);
+//	L.tileLayer(MB_URL, {attribution: MB_ATTR, id: 'examples.map-i875mjb7'}).addTo(map1);
+</script>
+
+
+
+
+
 <a href="nearby?lat={{record.lat}}&lon={{record.lon}}">Nearby records</a>
+</body>
+</html>
 

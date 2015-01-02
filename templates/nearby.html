@@ -1,10 +1,20 @@
+<!doctype html> 
+<html>
+<head>
+<meta charset="utf-8"/> 
+<title>Records near {{lat}}, {{lon}}</title>
+</head>
+<body>
 <h2>Records near {{lat}}, {{lon}}</h2>
-
-<p>Number of records: {{records|length}}</p>
 
 <table>
 {%for record in records%}
-<tr><td>{%if record.dist != None%}{{'%0.1f' % record.dist}}{%endif%}</td><td><a href="record?record={{record.id}}">{{record.name}}</a></td></tr>
+<tr><td>{%if record.dist != None%}{{'%0.1f' % record.dist}}{%endif%}</td><td><a href="record?record={{record.id}}">{{record.name|e}}</a></td></tr>
 {%endfor%}
 </table>
+
+<p>Number of records: {{records|length}}</p>
+
+</body>
+</html>
 
