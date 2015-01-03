@@ -138,7 +138,8 @@ class Record(object):
 
 		#If necessary, add extended fields
 		for field in self.extendedFields:
-			self.current[field] = ""
+			if field not in self.current:
+				self.current[field] = ""
 		
 	def Update(self, db, updateTime, user, newValues):
 		#See what has been changed
@@ -155,7 +156,6 @@ class Record(object):
 		self.edits.append(((user, updateTime), changedData))
 		changedFieldsJosn = json.dumps(self.edits)
 		db.update("data", where="id=$id", vars=vars2, edits=changedFieldsJosn)
-		#db.update("data", where="id=$id", vars=vars2, edits=None)
 
 class RecordPage:
 	def GET(self):
