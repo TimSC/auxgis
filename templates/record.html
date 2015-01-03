@@ -48,7 +48,7 @@
 
 <table>
 {%for edit in record.edits%}
-<tr><td>{{edit[0]}}</td><td>{{edit[1]}}</td></tr>
+<tr><td>{{edit[0][0]}} {{edit[0][1]|datetime}}</td><td>{{edit[1]}}</td></tr>
 {%endfor%}
 </table>
 

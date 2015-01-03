@@ -1,7 +1,7 @@
 #Recipe for apache: http://webpy.org/cookbook/mod_wsgi-apache
 #Jinja2 templating using solution 2 from: http://webpy.org/cookbook/template_jinja
 
-import web, os, sys
+import web, os, sys, datetime
 sys.path.append(os.path.dirname(__file__))
 import webpages
 from jinja2 import Environment,FileSystemLoader
@@ -13,18 +13,23 @@ urls = (
 	'/searchnear', 'webpages.SearchNear',
 	)
 
+def Jinja2DateTime(value):
+	dt = datetime.datetime.fromtimestamp(value)
+	return dt.strftime("%Y-%m-%d %H:%M:%S")
+
 def RenderTemplate(template_name, **context):
-    extensions = context.pop('extensions', [])
-    globals = context.pop('globals', {})
+	extensions = context.pop('extensions', [])
+	globals = context.pop('globals', {})
 
-    jinja_env = Environment(
-            loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')),
-            extensions=extensions,
-            )
-    jinja_env.globals.update(globals)
+	jinja_env = Environment(
+			loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')),
+			extensions=extensions,
+			)
+	jinja_env.globals.update(globals)
+	jinja_env.filters['datetime'] = Jinja2DateTime
 
-    #jinja_env.update_template_context(context)
-    return jinja_env.get_template(template_name).render(context)
+	#jinja_env.update_template_context(context)
+	return jinja_env.get_template(template_name).render(context)
 
 def InitDatabaseConn():
 	curdir = os.path.dirname(__file__)
