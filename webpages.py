@@ -1,4 +1,4 @@
-import web, app, math, json, time
+import web, app, math, json, time, copy
 
 class DistLatLon(object):
 	#Based on http://stackoverflow.com/a/1185413/4288232
@@ -99,6 +99,8 @@ class Nearby:
 class Record(object):
 	def __init__(self, db, rowId):
 		self.rowId = rowId
+		self.extendedFields = ["description"]
+
 		vars2 = {"id": rowId}
 		dataResults = db.select("data", where="id=$id", vars=vars2, limit = 1)
 		dataResults = list(dataResults)
@@ -116,9 +118,15 @@ class Record(object):
 		del self.current["edits"]
 
 		#Combine edits into current record
-		for editMeta, editData in self.edits:
+		self.editLog = copy.deepcopy(self.edits)
+		for (editMeta, editData), log in zip(self.edits, self.editLog):
 			for key in editData:
+				if key in self.current:
+					old = self.current[key]
+				else:
+					old = None
 				self.current[key] = editData[key]
+				log[1][key] = (editData[key], old)
 
 		#Separate special fixed fields into separate store
 		self.fixedData = {}
@@ -127,6 +135,10 @@ class Record(object):
 			if fixedField in self.current:
 				self.fixedData[fixedField] = self.current[fixedField]
 				del self.current[fixedField]
+
+		#If necessary, add extended fields
+		for field in self.extendedFields:
+			self.current[field] = ""
 		
 	def Update(self, db, updateTime, user, newValues):
 		#See what has been changed
@@ -143,6 +155,7 @@ class Record(object):
 		self.edits.append(((user, updateTime), changedData))
 		changedFieldsJosn = json.dumps(self.edits)
 		db.update("data", where="id=$id", vars=vars2, edits=changedFieldsJosn)
+		#db.update("data", where="id=$id", vars=vars2, edits=None)
 
 class RecordPage:
 	def GET(self):
