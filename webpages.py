@@ -115,6 +115,12 @@ class Record(object):
 			self.edits = []
 		del self.current["edits"]
 
+		#Combine edits into current record
+		for editMeta, editData in self.edits:
+			for key in editData:
+				self.current[key] = editData[key]
+
+		#Separate special fixed fields into separate store
 		self.fixedData = {}
 		fixedFields = ["lat", "lon", "id", "source"]
 		for fixedField in fixedFields:
@@ -165,8 +171,7 @@ class RecordPage:
 
 		record = Record(db, rowId)
 
-		return app.RenderTemplate("record.html", record=record.current, 
-			fixedData = record.fixedData, webinput=webinput)
+		return app.RenderTemplate("record.html", record=record, webinput=webinput)
 
 class SearchNear:
 	def GET(self):

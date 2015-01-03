@@ -2,16 +2,16 @@
 <html>
 <head>
 <meta charset="utf-8"/> 
-<title>{{record.name|e}}</title>
+<title>{{record.current.name|e}}</title>
 <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
 </head>
 <body>
 
-<h2>{{record.name|e}}</h2>
+<h2>{{record.current.name|e}}</h2>
 
 <form method="POST">
 <table>
-{%for k, v in record.iteritems()%}
+{%for k, v in record.current.iteritems()%}
 <tr><td>{{k|e}}</td><td><input type="text" name="field_{{k|e}}" value="{{v|e}}"/></td></tr>
 {%endfor%}
 </table>
@@ -19,13 +19,13 @@
 </form>
 
 <table>
-{%for k, v in fixedData.iteritems()%}
+{%for k, v in record.fixedData.iteritems()%}
 <tr><td>{{k|e}}</td><td>{{v|e}}</td></tr>
 {%endfor%}
 </table>
 
 {%if record.source == "ListedBuildings"%}
-<a href="http://list.english-heritage.org.uk/resultsingle.aspx?uid={{record.ListEntry}}">English Heritage record</a>
+<a href="http://list.english-heritage.org.uk/resultsingle.aspx?uid={{record.current.ListEntry}}">English Heritage record</a>
 {%endif%}
 
 <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
@@ -35,22 +35,24 @@
 
 <script>
 
-	var map = L.map('map').setView([{{fixedData.lat}}, {{fixedData.lon}}], 15);
+	var map = L.map('map').setView([{{record.fixedData.lat}}, {{record.fixedData.lon}}], 15);
 
 	L.tileLayer('http://draco.openstreetmap.org/sv-2013-11/{z}/{x}/{y}.png', {
 		attribution: 'Map data &copy; <a href="http://www.ordnancesurvey.co.uk/business-and-government/products/opendata-products.html">Ordnance Survey Data</a> © Crown copyright and database right 2013. Hosted by <a href="http://www.openstreetmap.org/">OSM</a>.',
 		maxZoom: 17
 	}).addTo(map);
 
-	var marker = L.marker([{{fixedData.lat}}, {{fixedData.lon}}]).addTo(map);
+	var marker = L.marker([{{record.fixedData.lat}}, {{record.fixedData.lon}}]).addTo(map);
 
 </script>
 
+<table>
+{%for edit in record.edits%}
+<tr><td>{{edit[0]}}</td><td>{{edit[1]}}</td></tr>
+{%endfor%}
+</table>
 
-
-
-
-<a href="nearby?lat={{fixedData.lat}}&lon={{fixedData.lon}}">Nearby records</a>
+<a href="nearby?lat={{record.fixedData.lat}}&lon={{record.fixedData.lon}}">Nearby records</a>
 </body>
 </html>
 
