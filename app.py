@@ -9,7 +9,7 @@ from jinja2 import Environment,FileSystemLoader
 urls = (
 	'/', 'webpages.SearchNear',
 	'/nearby', 'webpages.Nearby',
-	'/record', 'webpages.Record',
+	'/record', 'webpages.RecordPage',
 	'/searchnear', 'webpages.SearchNear',
 	)
 

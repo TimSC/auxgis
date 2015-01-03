@@ -96,60 +96,77 @@ class Nearby:
 		return app.RenderTemplate("nearby.html", records=records[:100], 
 			webinput=webinput, lat=lat, lon=lon)
 
-def GetCurrentRecord(db, rowId):
-	vars2 = {"id": rowId}
-	dataResults = db.select("data", where="id=$id", vars=vars2, limit = 1)
-	dataResults = list(dataResults)
-	record = dict(dataResults[0])
+class Record(object):
+	def __init__(self, db, rowId):
+		self.rowId = rowId
+		vars2 = {"id": rowId}
+		dataResults = db.select("data", where="id=$id", vars=vars2, limit = 1)
+		dataResults = list(dataResults)
+		self.current = dict(dataResults[0])
 
-	extendedData = json.loads(record["extended"])
-	for key in extendedData:
-		record[key] = extendedData[key]
-	del record["extended"]
-	del record["edits"]
+		extendedData = json.loads(self.current["extended"])
+		for key in extendedData:
+			self.current[key] = extendedData[key]
+		del self.current["extended"]
 
-	fixedData = {}
-	fixedFields = ["lat", "lon", "id", "source"]
-	for fixedField in fixedFields:
-		if fixedField in record:
-			fixedData[fixedField] = record[fixedField]
-			del record[fixedField]
+		if self.current["edits"] is not None:
+			self.edits = json.loads(self.current["edits"])
+		else:
+			self.edits = []
+		del self.current["edits"]
+
+		self.fixedData = {}
+		fixedFields = ["lat", "lon", "id", "source"]
+		for fixedField in fixedFields:
+			if fixedField in self.current:
+				self.fixedData[fixedField] = self.current[fixedField]
+				del self.current[fixedField]
 		
-	return record, fixedData
+	def Update(self, db, updateTime, user, newValues):
+		#See what has been changed
+		changedData = {}
+		for key in newValues:
+			if newValues[key] != self.current[key]:
+				changedData[key] = newValues[key]
 
-def RecordUpdated(updateTime, user, changedFields):
-	pass
+		#Return if nothing changed
+		if len(changedData) == 0:
+			return
 
-class Record:
+		vars2 = {"id": self.rowId}
+		self.edits.append(((user, updateTime), changedData))
+		changedFieldsJosn = json.dumps(self.edits)
+		db.update("data", where="id=$id", vars=vars2, edits=changedFieldsJosn)
+
+class RecordPage:
 	def GET(self):
 		return self.Render()
 
 	def POST(self):
 		db = web.ctx.db
 		webinput = web.input()
-		rowId = float(webinput["record"])
-		currentRecord, fixedData = GetCurrentRecord(db, rowId)
-		
-		#See what has been changed
-		changedData = {}
+		rowId = int(webinput["record"])
+		record = Record(db, rowId)
+
+		formData = {}		
 		for key in webinput:
 			if key[:6] != "field_": continue
 			keyName = key[6:]
-			if webinput[key] != currentRecord[keyName]:
-				changedData[keyName] = webinput[key]
+			formData[keyName] = webinput[key]
 
-		RecordUpdated(time.time(), "TimSC", changedData)
+		record.Update(db, time.time(), "TimSC", formData)
 
 		return self.Render()
 
 	def Render(self):
 		db = web.ctx.db
 		webinput = web.input()
-		rowId = float(webinput["record"])
+		rowId = int(webinput["record"])
 
-		currentRecord, fixedData = GetCurrentRecord(db, rowId)
+		record = Record(db, rowId)
 
-		return app.RenderTemplate("record.html", record=currentRecord, fixedData = fixedData, webinput=webinput)
+		return app.RenderTemplate("record.html", record=record.current, 
+			fixedData = record.fixedData, webinput=webinput)
 
 class SearchNear:
 	def GET(self):
