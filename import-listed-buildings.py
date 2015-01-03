@@ -37,6 +37,9 @@ class Db(object):
 		del extendedData["NGR"]
 
 		firstPos = map(float, shape[0])
+
+		extendedData["lat"] = firstPos[0]
+		extendedData["lon"] = firstPos[1]
 		extendedJson = json.dumps(extendedData)
 
 		sql = "INSERT INTO data (name, source, lat, lon, extended) VALUES (?,?,?,?,?);"

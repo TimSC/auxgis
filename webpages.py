@@ -1,4 +1,4 @@
-import web, app, math, json
+import web, app, math, json, time
 
 class DistLatLon(object):
 	#Based on http://stackoverflow.com/a/1185413/4288232
@@ -96,23 +96,60 @@ class Nearby:
 		return app.RenderTemplate("nearby.html", records=records[:100], 
 			webinput=webinput, lat=lat, lon=lon)
 
+def GetCurrentRecord(db, rowId):
+	vars2 = {"id": rowId}
+	dataResults = db.select("data", where="id=$id", vars=vars2, limit = 1)
+	dataResults = list(dataResults)
+	record = dict(dataResults[0])
+
+	extendedData = json.loads(record["extended"])
+	for key in extendedData:
+		record[key] = extendedData[key]
+	del record["extended"]
+	del record["edits"]
+
+	fixedData = {}
+	fixedFields = ["lat", "lon", "id", "source"]
+	for fixedField in fixedFields:
+		if fixedField in record:
+			fixedData[fixedField] = record[fixedField]
+			del record[fixedField]
+		
+	return record, fixedData
+
+def RecordUpdated(updateTime, user, changedFields):
+	pass
+
 class Record:
 	def GET(self):
+		return self.Render()
+
+	def POST(self):
+		db = web.ctx.db
+		webinput = web.input()
+		rowId = float(webinput["record"])
+		currentRecord, fixedData = GetCurrentRecord(db, rowId)
+		
+		#See what has been changed
+		changedData = {}
+		for key in webinput:
+			if key[:6] != "field_": continue
+			keyName = key[6:]
+			if webinput[key] != currentRecord[keyName]:
+				changedData[keyName] = webinput[key]
+
+		RecordUpdated(time.time(), "TimSC", changedData)
+
+		return self.Render()
+
+	def Render(self):
 		db = web.ctx.db
 		webinput = web.input()
 		rowId = float(webinput["record"])
 
-		vars2 = {"id": rowId}
-		dataResults = db.select("data", where="id=$id", vars=vars2, limit = 1)
-		dataResults = list(dataResults)
-		record = dict(dataResults[0])
+		currentRecord, fixedData = GetCurrentRecord(db, rowId)
 
-		extendedData = json.loads(record["extended"])
-		for key in extendedData:
-			record[key] = extendedData[key]
-		del record["extended"]
-
-		return app.RenderTemplate("record.html", record=record, webinput=webinput)
+		return app.RenderTemplate("record.html", record=currentRecord, fixedData = fixedData, webinput=webinput)
 
 class SearchNear:
 	def GET(self):

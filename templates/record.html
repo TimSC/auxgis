@@ -9,9 +9,20 @@
 
 <h2>{{record.name|e}}</h2>
 
+<form method="POST">
+<table>
 {%for k, v in record.iteritems()%}
-{{k}} = {{v}}<br/>
+<tr><td>{{k|e}}</td><td><input type="text" name="field_{{k|e}}" value="{{v|e}}"/></td></tr>
 {%endfor%}
+</table>
+<input type="submit"/>
+</form>
+
+<table>
+{%for k, v in fixedData.iteritems()%}
+<tr><td>{{k|e}}</td><td>{{v|e}}</td></tr>
+{%endfor%}
+</table>
 
 {%if record.source == "ListedBuildings"%}
 <a href="http://list.english-heritage.org.uk/resultsingle.aspx?uid={{record.ListEntry}}">English Heritage record</a>
@@ -24,14 +35,14 @@
 
 <script>
 
-	var map = L.map('map').setView([{{record.lat}}, {{record.lon}}], 15);
+	var map = L.map('map').setView([{{fixedData.lat}}, {{fixedData.lon}}], 15);
 
 	L.tileLayer('http://draco.openstreetmap.org/sv-2013-11/{z}/{x}/{y}.png', {
 		attribution: 'Map data &copy; <a href="http://www.ordnancesurvey.co.uk/business-and-government/products/opendata-products.html">Ordnance Survey Data</a> © Crown copyright and database right 2013. Hosted by <a href="http://www.openstreetmap.org/">OSM</a>.',
 		maxZoom: 17
 	}).addTo(map);
 
-	var marker = L.marker([{{record.lat}}, {{record.lon}}]).addTo(map);
+	var marker = L.marker([{{fixedData.lat}}, {{fixedData.lon}}]).addTo(map);
 
 </script>
 
@@ -39,7 +50,7 @@
 
 
 
-<a href="nearby?lat={{record.lat}}&lon={{record.lon}}">Nearby records</a>
+<a href="nearby?lat={{fixedData.lat}}&lon={{fixedData.lon}}">Nearby records</a>
 </body>
 </html>
 
