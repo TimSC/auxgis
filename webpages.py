@@ -1,5 +1,7 @@
 import web, app, math, json, time, copy
-import photoEmbed
+import photoEmbed, wikiEmbed
+import urllib2
+from xml.sax.saxutils import escape, unescape
 
 class DistLatLon(object):
 	#Based on http://stackoverflow.com/a/1185413/4288232
@@ -100,7 +102,7 @@ class Nearby:
 class Record(object):
 	def __init__(self, db, rowId):
 		self.rowId = rowId
-		self.extendedFields = ["description", "flickr"]
+		self.extendedFields = ["description", "flickr", "wikipedia"]
 
 		vars2 = {"id": rowId}
 		dataResults = db.select("data", where="id=$id", vars=vars2, limit = 1)
@@ -158,6 +160,25 @@ class Record(object):
 		changedFieldsJosn = json.dumps(self.edits)
 		db.update("data", where="id=$id", vars=vars2, edits=changedFieldsJosn)
 
+def SplitTextByParagraph(text, targetNumChars):
+	textPar = text.split("\n")
+	cumul = 0
+	cumulLi = []
+	for par in textPar:
+		cumul += len(par)
+		cumulLi.append(cumul)
+
+	bestSc = None
+	best = []
+	for i, l in enumerate(cumulLi):
+		err = abs(targetNumChars - l)
+		if bestSc is None or err < bestSc:
+			best = "\n".join(textPar[:i+1])
+			bestSc = err
+
+	return best
+
+
 class RecordPage:
 	def GET(self):
 		return self.Render()
@@ -198,7 +219,7 @@ class RecordPage:
 			except:
 				continue
 
-			photos.append({'link':'https://www.flickr.com/photos/{0}/{1}'.format(photoInfo.ownerRealName, idClean),
+			photos.append({'link':'https://www.flickr.com/photos/{0}/{1}'.format(photoInfo.ownerUserName, idClean),
 				'text':'{0} by {1}, on Flickr'.format(photoInfo.title, photoInfo.ownerRealName),
 				'url': photoSizes.photoByWidth[150]["source"],
 				'alt':'Cardwells Keep, Guildford',
@@ -206,7 +227,21 @@ class RecordPage:
 				'width': 150
 				})
 
-		return app.RenderTemplate("record.html", record=record, webinput=webinput, photos=photos)
+		wikipediaArticle = record.current["wikipedia"]
+		wikis = []
+
+		if wikipediaArticle is not None and len(wikipediaArticle) > 0:
+			article = wikiEmbed.MediawikiArticle(wikipediaArticle)
+			wikiEntry = {}
+			textExtract = SplitTextByParagraph(article.text, 500)
+			wikiEntry["text"] = escape(textExtract).replace("\n", "<br/>")
+			wikiEntry["url"] = "https://en.wikipedia.org/wiki/{0}".format(urllib2.quote(wikipediaArticle))
+			wikiEntry["credit"] = "Wikipedia"
+			wikiEntry["article"] = wikipediaArticle
+
+			wikis.append(wikiEntry)
+
+		return app.RenderTemplate("record.html", record=record, webinput=webinput, photos=photos, wikis=wikis)
 
 class SearchNear:
 	def GET(self):

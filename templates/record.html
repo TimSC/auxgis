@@ -28,6 +28,19 @@
 <a href="http://list.english-heritage.org.uk/resultsingle.aspx?uid={{record.current.ListEntry}}">English Heritage record</a>
 {%endif%}
 
+{%if photos|length > 0%}
+<p>
+{%for photo in photos%}
+<a href="{{photo.link|e}}" title="{{photo.text|e}}"><img src="{{photo.url|e}}" width="{{photo.width|e}}" height="{{photo.height|e}}" alt="{{photo.alt|e}}"></a>
+{%endfor%}
+</p>
+{%endif%}
+
+{%for wiki in wikis%}
+<h3>{{wiki.article|e}} from <a href="{{wiki.url|e}}">{{wiki.credit|e}}</a></h3>
+{{wiki.text}}
+{%endfor%}
+
 <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
 
 <div id="map" style="height:380px;"></div>
@@ -46,18 +59,12 @@
 
 </script>
 
+{%if record.editLog|length > 0%}
 <table>
 {%for edit in record.editLog%}
 <tr><td>{{edit[0][0]|e}} {{edit[0][1]|datetime}}</td><td>{{edit[1]|e}}</td></tr>
 {%endfor%}
 </table>
-
-{%if photos|length > 0%}
-<p>
-{%for photo in photos%}
-<a href="{{photo.link|e}}" title="{{photo.text|e}}"><img src="{{photo.url|e}}" width="{{photo.width|e}}" height="{{photo.height|e}}" alt="{{photo.alt|e}}"></a>
-{%endfor%}
-</p>
 {%endif%}
 
 <a href="nearby?lat={{record.fixedData.lat}}&lon={{record.fixedData.lon}}">Nearby records</a>
