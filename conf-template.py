@@ -1,0 +1,4 @@
+
+flickr-key = ""
+flickr-secret = ""
+

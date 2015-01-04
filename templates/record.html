@@ -52,6 +52,14 @@
 {%endfor%}
 </table>
 
+{%if photos|length > 0%}
+<p>
+{%for photo in photos%}
+<a href="{{photo.link|e}}" title="{{photo.text|e}}"><img src="{{photo.url|e}}" width="{{photo.width|e}}" height="{{photo.height|e}}" alt="{{photo.alt|e}}"></a>
+{%endfor%}
+</p>
+{%endif%}
+
 <a href="nearby?lat={{record.fixedData.lat}}&lon={{record.fixedData.lon}}">Nearby records</a>
 </body>
 </html>

@@ -1,4 +1,5 @@
 import web, app, math, json, time, copy
+import photoEmbed
 
 class DistLatLon(object):
 	#Based on http://stackoverflow.com/a/1185413/4288232
@@ -99,7 +100,7 @@ class Nearby:
 class Record(object):
 	def __init__(self, db, rowId):
 		self.rowId = rowId
-		self.extendedFields = ["description"]
+		self.extendedFields = ["description", "flickr"]
 
 		vars2 = {"id": rowId}
 		dataResults = db.select("data", where="id=$id", vars=vars2, limit = 1)
@@ -184,7 +185,24 @@ class RecordPage:
 
 		record = Record(db, rowId)
 
-		return app.RenderTemplate("record.html", record=record, webinput=webinput)
+		flickrIds = record.current["flickr"].split(",")
+		photos = []
+		flickrHandle = photoEmbed.GetFlickrHandle()
+
+		for flickrPhotoId in flickrIds:
+			photoInfo = photoEmbed.FlickrPhotoInfo(flickrHandle, flickrPhotoId)
+			if int(photoInfo.usageCanShare) != 1: continue
+			photoSizes = photoEmbed.FlickrPhotoSizes(flickrHandle, flickrPhotoId)
+
+			photos.append({'link':'https://www.flickr.com/photos/{0}/{1}'.format(photoInfo.ownerRealName, flickrPhotoId),
+				'text':'{0} by {1}, on Flickr'.format(photoInfo.title, photoInfo.ownerRealName),
+				'url': photoSizes.photoByWidth[150]["source"],
+				'alt':'Cardwells Keep, Guildford',
+				'height': 150,
+				'width': 150
+				})
+
+		return app.RenderTemplate("record.html", record=record, webinput=webinput, photos=photos)
 
 class SearchNear:
 	def GET(self):
