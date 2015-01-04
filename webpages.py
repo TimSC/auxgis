@@ -190,11 +190,15 @@ class RecordPage:
 		flickrHandle = photoEmbed.GetFlickrHandle()
 
 		for flickrPhotoId in flickrIds:
-			photoInfo = photoEmbed.FlickrPhotoInfo(flickrHandle, flickrPhotoId)
-			if int(photoInfo.usageCanShare) != 1: continue
-			photoSizes = photoEmbed.FlickrPhotoSizes(flickrHandle, flickrPhotoId)
+			try:
+				idClean = int(flickrPhotoId.strip())
+				photoInfo = photoEmbed.FlickrPhotoInfo(flickrHandle, idClean)
+				if int(photoInfo.usageCanShare) != 1: continue
+				photoSizes = photoEmbed.FlickrPhotoSizes(flickrHandle, idClean)
+			except:
+				continue
 
-			photos.append({'link':'https://www.flickr.com/photos/{0}/{1}'.format(photoInfo.ownerRealName, flickrPhotoId),
+			photos.append({'link':'https://www.flickr.com/photos/{0}/{1}'.format(photoInfo.ownerRealName, idClean),
 				'text':'{0} by {1}, on Flickr'.format(photoInfo.title, photoInfo.ownerRealName),
 				'url': photoSizes.photoByWidth[150]["source"],
 				'alt':'Cardwells Keep, Guildford',
