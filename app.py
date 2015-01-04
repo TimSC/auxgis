@@ -1,6 +1,11 @@
 #Recipe for apache: http://webpy.org/cookbook/mod_wsgi-apache
 #Jinja2 templating using solution 2 from: http://webpy.org/cookbook/template_jinja
 
+#sudo apt-get install apache2 libapache2-mod-wsgi python-dev python-jinja2
+#sudo easy_install web.py
+#sudo easy_install mwparserfromhell
+#sudo easy_install flickrapi
+
 import web, os, sys, datetime
 sys.path.append(os.path.dirname(__file__))
 import webpages

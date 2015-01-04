@@ -1,4 +1,4 @@
 
-flickr-key = ""
-flickr-secret = ""
+flickrKey = ""
+flickrSecret = ""
 

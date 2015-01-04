@@ -24,7 +24,7 @@
 {%endfor%}
 </table>
 
-{%if record.source == "ListedBuildings"%}
+{%if record.current.source == "ListedBuildings"%}
 <a href="http://list.english-heritage.org.uk/resultsingle.aspx?uid={{record.current.ListEntry}}">English Heritage record</a>
 {%endif%}
 
