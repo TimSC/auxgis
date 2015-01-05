@@ -42,7 +42,6 @@ class LogOut:
 		webinput = web.input()
 		
 		web.ctx.session.username = None
-		web.ctx.session.destroy()
 		return app.RenderTemplate("logout.html", webinput=webinput, session=web.ctx.session)
 
 class Register:

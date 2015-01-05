@@ -50,15 +50,7 @@ app = web.application(urls, globals())
 curdir = os.path.dirname(__file__)
 app.add_processor(web.loadhook(InitDatabaseConn))
 
-if conf.debug:
-
-	if web.config.get('_session') is None:
-		session = web.session.Session(app, web.session.DiskStore(os.path.join(curdir,'sessions')),)
-		web.config._session = session
-	else:
-		session = web.config._session
-else:
-	session = web.session.Session(app, web.session.DiskStore(os.path.join(curdir,'sessions')),)
+session = web.session.Session(app, web.session.DiskStore(os.path.join(curdir,'sessions')),)
 
 application = app.wsgifunc()
 
