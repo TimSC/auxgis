@@ -1,0 +1,35 @@
+<!doctype html> 
+<html>
+<head>
+<meta charset="utf-8"/> 
+<title>Log in</title>
+</head>
+<body>
+
+{% include 'inc-account-links.html' %}
+
+<h2>Log in</h2>
+
+{%if actionMessage != None %}
+<p>{{actionMessage}}</p>
+{%endif%}
+
+{%if session.username == None %}
+<form method="POST">
+<table>
+<tr><td>Username:</td><td><input type="text" name="username"/></td></tr>
+<tr><td>Password:</td><td><input type="password" name="password"/></td></tr>
+</table>
+<input type="submit" value="Log in"/>
+</form>
+{%endif%}
+
+{%if session.username != None %}
+<p>Logged in as {{session.username|e}}</p>
+{%endif%}
+
+<p><a href="./">Front page</a></p>
+
+</body>
+</html>
+

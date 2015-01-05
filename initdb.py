@@ -2,21 +2,19 @@ import sqlite3
 
 if __name__=="__main__":
 	conn = sqlite3.connect('auxgis.db')
+	users = sqlite3.connect('users.db')	
+
 	c = conn.cursor()
 
-	try:
-		c.execute('''DROP TABLE pos;''')
-	except:
-		pass
-	try:
-		c.execute('''DROP TABLE data;''')
-	except:
-		pass
-
 	# Create tables
-	c.execute('''CREATE VIRTUAL TABLE pos USING rtree(id, minLat, maxLat, minLon, maxLon);''')
+	try:
+		c.execute('''CREATE VIRTUAL TABLE pos USING rtree(id, minLat, maxLat, minLon, maxLon);''')
 
-	c.execute('''CREATE TABLE data
+	except Exception as err:
+		print "Could not create table pos,", err
+
+	try:
+		c.execute('''CREATE TABLE data
 				(id INTEGER PRIMARY KEY AUTOINCREMENT, 
 				name text, 
 				source text, 
@@ -25,5 +23,27 @@ if __name__=="__main__":
 				extended text,
 				edits text);''')
 
+	except Exception as err:
+		print "Could not create table data,", err
+
+	usersc = users.cursor()
+
+	try:
+		usersc.execute('''CREATE TABLE users
+				(id INTEGER PRIMARY KEY AUTOINCREMENT, 
+				username text, 
+				salt text, 
+				email text,
+				password_hash text
+				);''')
+	except Exception as err:
+		print "Could not create table users,", err
+
+	try:
+		usersc.execute('''CREATE INDEX username_index ON users (username);''')
+	except Exception as err:
+		print "Could not create index username_index,", err
+
 	conn.commit()
+	users.commit()
 

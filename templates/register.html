@@ -3,7 +3,9 @@
 <head>
 <meta charset="utf-8"/> 
 <title>Register new account</title>
+{%if recaptchaEnabled %}
 <script src='https://www.google.com/recaptcha/api.js'></script>
+{%endif%}
 </head>
 <body>
 <h2>Register new account</h2>
@@ -12,16 +14,26 @@
 <p>{{actionTxt}}</p>
 {%endif%}
 
+{%if justRegistered == 0 %}
 <form method="POST">
 <table>
 <tr><td>Username:</td><td><input type="text" name="username"/></td></tr>
 <tr><td>Email (optional):</td><td><input type="text" name="email"/></td></tr>
 <tr><td>Password:</td><td><input type="password" name="password"/></td></tr>
 <tr><td>Confirm password:</td><td><input type="password" name="password2"/></td></tr>
+{%if recaptchaEnabled %}
 <tr><td colspan="2"><div class="g-recaptcha" data-sitekey="6LcVAwATAAAAAF-VdqYxkQIMAvIgHwChHuObzii9"></div></td></tr>
+{%endif%}
 </table>
 <input type="submit" value="Register"/>
 </form>
+{%endif%}
+
+{%if justRegistered == 1 %}
+<h3>Welcome {{webinput.username|e}}</h3>
+{%endif%}
+
+<p><a href="./">Front page</a></p>
 
 </body>
 </html>

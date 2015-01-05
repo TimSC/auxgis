@@ -1,6 +1,5 @@
 import web, app, math, json, time, copy
 import photoEmbed, wikiEmbed
-import urllib2, recaptchaCli, conf
 from xml.sax.saxutils import escape, unescape
 
 class DistLatLon(object):
@@ -82,54 +81,6 @@ class FrontPage:
 		
 		return "Front page"
 
-class LogIn:
-	def GET(self):
-		db = web.ctx.db
-		webinput = web.input()
-		
-		return "Log in page"
-
-class LogOut:
-	def GET(self):
-		db = web.ctx.db
-		webinput = web.input()
-		
-		return "Log out page"
-
-class Register:
-	def GET(self):
-		db = web.ctx.db
-		webinput = web.input()
-		
-		return self.Render()
-
-	def POST(self):
-		db = web.ctx.db
-		webinput = web.input()
-		env = web.ctx.env
-
-		#Check recaptcha
-		userIp = env["REMOTE_ADDR"]		
-		ok, recapErrors = recaptchaCli.Check(conf.recaptchaSecret, webinput["g-recaptcha-response"], userIp)
-
-		if not ok:
-			errorStr = ",".join(recapErrors)
-			return self.Render("Recaptcha problem. Please try again. {0}".format(errorStr))
-
-		#Check passwords match
-		if webinput["password"] != webinput["password2"]:
-			return self.Render("Passwords do not match")
-
-
-
-		return self.Render("All good")
-
-	def Render(self, actionTxt = None):
-		db = web.ctx.db
-		webinput = web.input()
-
-		return app.RenderTemplate("register.html", webinput=webinput, actionTxt=actionTxt)
-
 class Nearby:
 	def GET(self):
 		db = web.ctx.db
@@ -145,7 +96,7 @@ class Nearby:
 		records = GetRecordsNear(db, lat, lon)
 		
 		return app.RenderTemplate("nearby.html", records=records[:100], 
-			webinput=webinput, lat=lat, lon=lon)
+			webinput=webinput, lat=lat, lon=lon, session = web.session)
 
 class Record(object):
 	def __init__(self, db, rowId):
@@ -235,6 +186,10 @@ class RecordPage:
 		db = web.ctx.db
 		webinput = web.input()
 		rowId = int(webinput["record"])
+
+		if web.session.username == None:
+			return self.Render("Log in first")
+
 		record = Record(db, rowId)
 
 		formData = {}		
@@ -243,7 +198,7 @@ class RecordPage:
 			keyName = key[6:]
 			formData[keyName] = webinput[key]
 
-		record.Update(db, time.time(), "TimSC", formData)
+		record.Update(db, time.time(), web.session.username, formData)
 
 		return self.Render()
 
@@ -289,7 +244,7 @@ class RecordPage:
 
 			wikis.append(wikiEntry)
 
-		return app.RenderTemplate("record.html", record=record, webinput=webinput, photos=photos, wikis=wikis)
+		return app.RenderTemplate("record.html", record=record, webinput=webinput, photos=photos, wikis=wikis, session = web.session)
 
 class SearchNear:
 	def GET(self):
@@ -309,5 +264,5 @@ class SearchNear:
 			except:
 				pass
 
-		return app.RenderTemplate("searchnear.html", webinput=webinput, lat=lat, lon=lon)
+		return app.RenderTemplate("searchnear.html", webinput=webinput, lat=lat, lon=lon, session = web.session)
 

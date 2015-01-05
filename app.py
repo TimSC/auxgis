@@ -8,16 +8,16 @@
 
 import web, os, sys, datetime
 sys.path.append(os.path.dirname(__file__))
-import webpages
+import webpages, userpages
 from jinja2 import Environment,FileSystemLoader
 
 urls = (
 	'/', 'webpages.SearchNear',
 	'/nearby', 'webpages.Nearby',
 	'/record', 'webpages.RecordPage',
-	'/login', 'webpages.LogIn',
-	'/logout', 'webpages.LogOut',
-	'/register', 'webpages.Register',
+	'/login', 'userpages.LogIn',
+	'/logout', 'userpages.LogOut',
+	'/register', 'userpages.Register',
 	'/searchnear', 'webpages.SearchNear',
 	)
 
