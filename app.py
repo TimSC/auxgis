@@ -10,6 +10,9 @@ urls = (
 	'/', 'webpages.SearchNear',
 	'/nearby', 'webpages.Nearby',
 	'/record', 'webpages.RecordPage',
+	'/login', 'webpages.LogIn',
+	'/logout', 'webpages.LogOut',
+	'/register', 'webpages.Register',
 	'/searchnear', 'webpages.SearchNear',
 	)
 
@@ -34,6 +37,7 @@ def RenderTemplate(template_name, **context):
 def InitDatabaseConn():
 	curdir = os.path.dirname(__file__)
 	web.ctx.db = web.database(dbn='sqlite', db=os.path.join(curdir, 'auxgis.db'))
+	web.ctx.users = web.database(dbn='sqlite', db=os.path.join(curdir, 'users.db'))
 
 web.config.debug = True
 app = web.application(urls, globals())

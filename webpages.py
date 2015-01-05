@@ -82,6 +82,27 @@ class FrontPage:
 		
 		return "Front page"
 
+class LogIn:
+	def GET(self):
+		db = web.ctx.db
+		webinput = web.input()
+		
+		return "Log in page"
+
+class LogOut:
+	def GET(self):
+		db = web.ctx.db
+		webinput = web.input()
+		
+		return "Log out page"
+
+class Register:
+	def GET(self):
+		db = web.ctx.db
+		webinput = web.input()
+		
+		return app.RenderTemplate("register.html", webinput=webinput)
+
 class Nearby:
 	def GET(self):
 		db = web.ctx.db
