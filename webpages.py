@@ -116,6 +116,12 @@ class Register:
 			errorStr = ",".join(recapErrors)
 			return self.Render("Recaptcha problem. Please try again. {0}".format(errorStr))
 
+		#Check passwords match
+		if webinput["password"] != webinput["password2"]:
+			return self.Render("Passwords do not match")
+
+
+
 		return self.Render("All good")
 
 	def Render(self, actionTxt = None):
