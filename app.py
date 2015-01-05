@@ -8,7 +8,7 @@
 
 import web, os, sys, datetime
 sys.path.append(os.path.dirname(__file__))
-import webpages, userpages
+import webpages, userpages, conf
 from jinja2 import Environment,FileSystemLoader
 
 urls = (
@@ -45,16 +45,20 @@ def InitDatabaseConn():
 	web.ctx.users = web.database(dbn='sqlite', db=os.path.join(curdir, 'users.db'))
 	web.ctx.session = session
 
-web.config.debug = True
+web.config.debug = conf.debug
 app = web.application(urls, globals())
 curdir = os.path.dirname(__file__)
 app.add_processor(web.loadhook(InitDatabaseConn))
 
-if web.config.get('_session') is None:
-	session = web.session.Session(app, web.session.DiskStore(os.path.join(curdir,'sessions')),)
-	web.config._session = session
+if conf.debug:
+
+	if web.config.get('_session') is None:
+		session = web.session.Session(app, web.session.DiskStore(os.path.join(curdir,'sessions')),)
+		web.config._session = session
+	else:
+		session = web.config._session
 else:
-    session = web.config._session
+	session = web.session.Session(app, web.session.DiskStore(os.path.join(curdir,'sessions')),)
 
 application = app.wsgifunc()
 
