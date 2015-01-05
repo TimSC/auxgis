@@ -27,22 +27,22 @@ class LogIn:
 		if record.password_hash != password_hash:
 			return self.Render("Incorrect password. Please try again.")
 
-		web.session.username = username
+		web.ctx.session.username = username
 		return self.Render()
 
 	def Render(self, actionMessage = None):
 		webinput = web.input()
 		
 
-		return app.RenderTemplate("login.html", webinput=webinput, session=web.session, actionMessage=actionMessage)
+		return app.RenderTemplate("login.html", webinput=webinput, session=web.ctx.session, actionMessage=actionMessage)
 
 class LogOut:
 	def GET(self):
 		db = web.ctx.db
 		webinput = web.input()
 		
-		web.session.username = None
-		return app.RenderTemplate("logout.html", webinput=webinput, session=web.session)
+		web.ctx.session.username = None
+		return app.RenderTemplate("logout.html", webinput=webinput, session=web.ctx.session)
 
 class Register:
 	def GET(self):
@@ -102,7 +102,7 @@ class Register:
 		password_hash = hashlib.sha512(password + salt).hexdigest()
 		users.insert("users", username=username, salt=salt, password_hash=password_hash, email=email)
 
-		web.session.username = username
+		web.ctx.session.username = username
 
 		return self.Render(actionTxt = "All good", justRegistered = True)
 
@@ -114,5 +114,5 @@ class Register:
 			actionTxt=actionTxt, 
 			recaptchaEnabled = conf.recaptchaEnabled,
 			justRegistered = justRegistered,
-			session = web.session)
+			session = web.ctx.session)
 

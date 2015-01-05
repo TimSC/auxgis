@@ -11,6 +11,10 @@
 
 <h2>{{record.current.name|e}}</h2>
 
+{%if actionMessage != None%}
+<p>{{actionMessage}}<p>
+{%endif%}
+
 <form method="POST">
 <table>
 {%for k, v in record.current.iteritems()%}

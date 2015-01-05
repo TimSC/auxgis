@@ -187,7 +187,7 @@ class RecordPage:
 		webinput = web.input()
 		rowId = int(webinput["record"])
 
-		if web.session.username == None:
+		if web.ctx.session.get("username", None) == None:
 			return self.Render("Log in first")
 
 		record = Record(db, rowId)
@@ -198,11 +198,11 @@ class RecordPage:
 			keyName = key[6:]
 			formData[keyName] = webinput[key]
 
-		record.Update(db, time.time(), web.session.username, formData)
+		record.Update(db, time.time(), web.ctx.session.username, formData)
 
 		return self.Render()
 
-	def Render(self):
+	def Render(self, actionMessage = None):
 		db = web.ctx.db
 		webinput = web.input()
 		rowId = int(webinput["record"])
@@ -244,7 +244,10 @@ class RecordPage:
 
 			wikis.append(wikiEntry)
 
-		return app.RenderTemplate("record.html", record=record, webinput=webinput, photos=photos, wikis=wikis, session = web.session)
+		return app.RenderTemplate("record.html", record=record, 
+			webinput=webinput, photos=photos, wikis=wikis, 
+			actionMessage = actionMessage,
+			session = web.ctx.session)
 
 class SearchNear:
 	def GET(self):
@@ -264,5 +267,5 @@ class SearchNear:
 			except:
 				pass
 
-		return app.RenderTemplate("searchnear.html", webinput=webinput, lat=lat, lon=lon, session = web.session)
+		return app.RenderTemplate("searchnear.html", webinput=webinput, lat=lat, lon=lon, session = web.ctx.session)
 

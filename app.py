@@ -43,6 +43,7 @@ def InitDatabaseConn():
 	curdir = os.path.dirname(__file__)
 	web.ctx.db = web.database(dbn='sqlite', db=os.path.join(curdir, 'auxgis.db'))
 	web.ctx.users = web.database(dbn='sqlite', db=os.path.join(curdir, 'users.db'))
+	web.ctx.session = session
 
 web.config.debug = True
 app = web.application(urls, globals())
