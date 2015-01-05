@@ -2,3 +2,6 @@
 flickrKey = ""
 flickrSecret = ""
 
+recaptchaKey = ""
+recaptchaSecret = ""
+

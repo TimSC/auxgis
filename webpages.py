@@ -1,6 +1,6 @@
 import web, app, math, json, time, copy
 import photoEmbed, wikiEmbed
-import urllib2
+import urllib2, recaptchaCli, conf
 from xml.sax.saxutils import escape, unescape
 
 class DistLatLon(object):
@@ -101,7 +101,28 @@ class Register:
 		db = web.ctx.db
 		webinput = web.input()
 		
-		return app.RenderTemplate("register.html", webinput=webinput)
+		return self.Render()
+
+	def POST(self):
+		db = web.ctx.db
+		webinput = web.input()
+		env = web.ctx.env
+
+		#Check recaptcha
+		userIp = env["REMOTE_ADDR"]		
+		ok, recapErrors = recaptchaCli.Check(conf.recaptchaSecret, webinput["g-recaptcha-response"], userIp)
+
+		if not ok:
+			errorStr = ",".join(recapErrors)
+			return self.Render("Recaptcha problem. Please try again. {0}".format(errorStr))
+
+		return self.Render("All good")
+
+	def Render(self, actionTxt = None):
+		db = web.ctx.db
+		webinput = web.input()
+
+		return app.RenderTemplate("register.html", webinput=webinput, actionTxt=actionTxt)
 
 class Nearby:
 	def GET(self):
