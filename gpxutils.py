@@ -44,14 +44,10 @@ class GpxWriter:
 		#<type></type>
 		self.fi.write('</wpt>\n')
 
-	def Close(self):
+	def __del__(self):
 		if self.fi is None: return
 		self.fi.write("</gpx>\n")
-		self.fi.close()
 		self.fi = None
-
-	def __del__(self):
-		self.Close()
 
 class GpxReader:
 	

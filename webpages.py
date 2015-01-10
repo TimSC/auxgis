@@ -123,6 +123,11 @@ class NearbyGpx:
 
 			gw.Waypoint(record["lat"], record["lon"], devwl)
 
+		del gw
+
+		web.header('Content-Type', 'application/gpx+xml')
+		web.header('Content-Disposition', 'attachment; filename="nearby.gpx"')
+
 		return buff.getvalue()
 
 class Record(object):
