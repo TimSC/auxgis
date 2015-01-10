@@ -1,4 +1,4 @@
-import web, app, math, json, time, copy
+import web, app, math, json, time, copy, gpxutils, StringIO
 import photoEmbed, wikiEmbed
 from xml.sax.saxutils import escape, unescape
 
@@ -97,6 +97,33 @@ class Nearby:
 		
 		return app.RenderTemplate("nearby.html", records=records[:100], 
 			webinput=webinput, lat=lat, lon=lon, session = web.session)
+
+class NearbyGpx:
+	def GET(self):
+		db = web.ctx.db
+		webinput = web.input()
+		buff = StringIO.StringIO()
+		gw = gpxutils.GpxWriter(buff)
+
+		try:
+			lat = float(webinput["lat"])
+		except:
+			lat = None
+		try:
+			lon = float(webinput["lon"])
+		except:
+			lon = None
+		records = GetRecordsNear(db, lat, lon)
+
+		vowels = ('a', 'e', 'i', 'o', 'u')		
+
+
+		for record in records[:100]:
+			devwl = ''.join([l for l in record["name"] if l not in vowels]);
+
+			gw.Waypoint(record["lat"], record["lon"], devwl)
+
+		return buff.getvalue()
 
 class Record(object):
 	def __init__(self, db, rowId):

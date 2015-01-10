@@ -14,6 +14,7 @@ from jinja2 import Environment,FileSystemLoader
 urls = (
 	'/', 'webpages.SearchNear',
 	'/nearby', 'webpages.Nearby',
+	'/nearbygpx', 'webpages.NearbyGpx',
 	'/record', 'webpages.RecordPage',
 	'/login', 'userpages.LogIn',
 	'/logout', 'userpages.LogOut',
