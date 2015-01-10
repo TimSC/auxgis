@@ -1,6 +1,7 @@
 import web, app, math, json, time, copy, gpxutils, StringIO
 import photoEmbed, wikiEmbed
 from xml.sax.saxutils import escape, unescape
+import urllib2
 
 class DistLatLon(object):
 	#Based on http://stackoverflow.com/a/1185413/4288232
@@ -241,10 +242,18 @@ class RecordPage:
 
 		record = Record(db, rowId)
 
-		flickrIds = record.current["flickr"].split(",")
+		#Get stored flickr IDs
+		flickrIds = set(record.current["flickr"].split(","))
 		photos = []
 		flickrHandle = photoEmbed.GetFlickrHandle()
 
+		#Search using flickr API for tags that match this ID
+		tag = "england_listed_building:entry={0}".format(record.current["ListEntry"])
+		flickrSearch = photoEmbed.FlickrSearch(flickrHandle, tag)
+		for p in flickrSearch.photos[:25]: #Limit to 25 photos
+			flickrIds.add(p["id"])
+		
+		#Process flickr IDs into a gallery
 		for flickrPhotoId in flickrIds:
 			try:
 				idClean = int(flickrPhotoId.strip())
@@ -254,14 +263,15 @@ class RecordPage:
 			except:
 				continue
 
-			photos.append({'link':'https://www.flickr.com/photos/{0}/{1}'.format(photoInfo.ownerUserName, idClean),
+			photos.append({'link':'https://www.flickr.com/photos/{0}/{1}'.format(urllib2.quote(photoInfo.ownerPathAlias), idClean),
 				'text':'{0} by {1}, on Flickr'.format(photoInfo.title, photoInfo.ownerRealName),
 				'url': photoSizes.photoByWidth[150]["source"],
-				'alt':'Cardwells Keep, Guildford',
+				'alt':photoInfo.title,
 				'height': 150,
 				'width': 150
 				})
 
+		#Process wikipedia link into embeded text
 		wikipediaArticle = record.current["wikipedia"]
 		wikis = []
 
@@ -275,6 +285,11 @@ class RecordPage:
 			wikiEntry["article"] = wikipediaArticle
 
 			wikis.append(wikiEntry)
+
+		
+
+
+
 
 		return app.RenderTemplate("record.html", record=record, 
 			webinput=webinput, photos=photos, wikis=wikis, 
