@@ -304,8 +304,12 @@ class RecordPage:
 			if photoInfo.ownerPathAlias is not None:
 				userPth = photoInfo.ownerPathAlias
 
+			displayName = photoInfo.ownerUserName
+			if photoInfo.ownerRealName is not None and len(photoInfo.ownerRealName) > 0:
+				displayName = photoInfo.ownerRealName
+
 			photos.append({'link':u'https://www.flickr.com/photos/{0}/{1}'.format(urllib2.quote(userPth), idClean),
-				'text':u'{0} by {1}, on Flickr'.format(photoInfo.title, photoInfo.ownerRealName),
+				'text':u'{0} by {1}, on Flickr'.format(photoInfo.title, displayName),
 				'url': photoSizes.photoByWidth[150]["source"],
 				'alt':photoInfo.title,
 				'height': 150,
@@ -390,8 +394,12 @@ class SearchFlickr:
 			if photoInfo.ownerPathAlias is not None:
 				userPth = photoInfo.ownerPathAlias
 
+			displayName = photoInfo.ownerUserName
+			if photoInfo.ownerRealName is not None and len(photoInfo.ownerRealName) > 0:
+				displayName = photoInfo.ownerRealName
+
 			photos.append({'link':u'https://www.flickr.com/photos/{0}/{1}'.format(urllib2.quote(userPth), photoId),
-				'text':u'{0} by {1}, on Flickr'.format(photoInfo.title, photoInfo.ownerRealName),
+				'text':u'{0} by {1}, on Flickr'.format(photoInfo.title, displayName),
 				'url': photoSizes.photoByWidth[150]["source"],
 				'alt': photoInfo.title,
 				'height': 150,
