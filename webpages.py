@@ -255,7 +255,10 @@ class RecordPage:
 			for photoId in photoIds:
 				currentFlickrIds.add(photoId)
 
-			currentFlickrStrIds = map(str, currentFlickrIds)
+			currentFlickrIdsSortable = list(currentFlickrIds)
+			currentFlickrIdsSortable.sort()
+
+			currentFlickrStrIds = map(str, currentFlickrIdsSortable)
 
 			formData={'flickr': ",".join(currentFlickrStrIds)}
 			record.Update(db, time.time(), web.ctx.session.username, formData)
@@ -275,7 +278,7 @@ class RecordPage:
 		flickrHandle = photoEmbed.GetFlickrHandle()
 
 		#Search using flickr API for tags that match this ID
-		tag = "england_listed_building:entry={0}".format(record.current["ListEntry"])
+		tag = u"england_listed_building:entry={0}".format(record.current["ListEntry"])
 		flickrSearch = photoEmbed.FlickrSearch(flickrHandle, tag)
 		for p in flickrSearch.photos[:25]: #Limit to 25 photos
 			flickrIds.add(p["id"])
@@ -301,8 +304,8 @@ class RecordPage:
 			if photoInfo.ownerPathAlias is not None:
 				userPth = photoInfo.ownerPathAlias
 
-			photos.append({'link':'https://www.flickr.com/photos/{0}/{1}'.format(urllib2.quote(userPth), idClean),
-				'text':'{0} by {1}, on Flickr'.format(photoInfo.title, photoInfo.ownerRealName),
+			photos.append({'link':u'https://www.flickr.com/photos/{0}/{1}'.format(urllib2.quote(userPth), idClean),
+				'text':u'{0} by {1}, on Flickr'.format(photoInfo.title, photoInfo.ownerRealName),
 				'url': photoSizes.photoByWidth[150]["source"],
 				'alt':photoInfo.title,
 				'height': 150,
@@ -318,16 +321,11 @@ class RecordPage:
 			wikiEntry = {}
 			textExtract = SplitTextByParagraph(article.text, 500)
 			wikiEntry["text"] = escape(textExtract).replace("\n", "<br/>")
-			wikiEntry["url"] = "https://en.wikipedia.org/wiki/{0}".format(urllib2.quote(wikipediaArticle))
+			wikiEntry["url"] = u"https://en.wikipedia.org/wiki/{0}".format(urllib2.quote(wikipediaArticle))
 			wikiEntry["credit"] = "Wikipedia"
 			wikiEntry["article"] = wikipediaArticle
 
 			wikis.append(wikiEntry)
-
-		
-
-
-
 
 		return app.RenderTemplate("record.html", record=record, 
 			webinput=webinput, photos=photos, wikis=wikis, 
@@ -372,6 +370,11 @@ class SearchFlickr:
 			except:
 				pass
 
+		if "limitarea" not in webinput or webinput["limitarea"] != "on":
+			lat = None
+			lon = None
+			radius = None
+
 		flickrHandle = photoEmbed.GetFlickrHandle()
 		photoSearch = photoEmbed.FlickrSearch(flickrHandle, text=webinput["text"], lat=lat, lon=lon, radius=webinput["radius"])
 
@@ -387,8 +390,8 @@ class SearchFlickr:
 			if photoInfo.ownerPathAlias is not None:
 				userPth = photoInfo.ownerPathAlias
 
-			photos.append({'link':'https://www.flickr.com/photos/{0}/{1}'.format(urllib2.quote(userPth), photoId),
-				'text':'{0} by {1}, on Flickr'.format(photoInfo.title, photoInfo.ownerRealName),
+			photos.append({'link':u'https://www.flickr.com/photos/{0}/{1}'.format(urllib2.quote(userPth), photoId),
+				'text':u'{0} by {1}, on Flickr'.format(photoInfo.title, photoInfo.ownerRealName),
 				'url': photoSizes.photoByWidth[150]["source"],
 				'alt': photoInfo.title,
 				'height': 150,
