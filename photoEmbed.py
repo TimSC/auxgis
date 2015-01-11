@@ -6,7 +6,7 @@ def GetFlickrHandle():
 	return flickr
 
 class FlickrPhotoInfo(object):
-	def __init__(self, flickr, photo_id, enableCache=False):
+	def __init__(self, flickr, photo_id, enableCache=True):
 		self.flickr = flickr
 
 		self.title = None
@@ -59,19 +59,52 @@ class FlickrPhotoInfo(object):
 			self.cache[photo_id] = (time.time(), resultJson)
 
 class FlickrPhotoSizes(object):
-	def __init__(self, flickr, photo_id):
-		sizeResult = flickr.photos.getSizes(photo_id=photo_id)
-	
+	def __init__(self, flickr, photo_id, enableCache=True):
+		self.flickr = flickr	
+
 		self.photoByWidth = {}
 		self.photoByHeight = {}
-		if len(sizeResult) > 0:
 
-			photoSizes = sizeResult[0]
-			for size in photoSizes:
-				height = int(size.attrib['height'])
-				width = int(size.attrib['width'])
-				self.photoByWidth[width] = size.attrib
-				self.photoByHeight[height] = size.attrib
+		if enableCache:
+			curdir = os.path.dirname(__file__)
+			self.cache = sqlitedict.SqliteDict(os.path.join(curdir, 'FlickrPhotoSizes.db'), autocommit=False)
+		else:
+			self.cache = None
+
+		if self.cache:
+			#Check if photo is available in cache			
+			available = photo_id in self.cache
+			if available:
+				recordTime, recordData = self.cache[photo_id]
+				ageSec = time.time() - recordTime
+
+				#If not too old
+				if ageSec < 24*60*60:
+					#Use cached version
+					self._ExtractFields(json.loads(recordData))
+					return
+
+		self._RetrieveViaWeb(photo_id)
+
+	def __del__(self):
+		if self.cache is not None:
+			self.cache.commit()
+
+	def _ExtractFields(self, result):
+		for size in result['sizes']['size']:
+			height = int(size['height'])
+			width = int(size['width'])
+			self.photoByWidth[width] = size
+			self.photoByHeight[height] = size
+
+	def _RetrieveViaWeb(self, photo_id):
+		sizeResultJson = self.flickr.photos.getSizes(photo_id=photo_id, format='json')
+		sizeResult = json.loads(sizeResultJson)
+
+		self._ExtractFields(sizeResult)
+
+		if self.cache is not None:
+			self.cache[photo_id] = (time.time(), sizeResultJson)
 
 class FlickrSearch(object):
 	def __init__(self, flickr, tags):
