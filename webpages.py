@@ -255,13 +255,20 @@ class RecordPage:
 		
 		#Process flickr IDs into a gallery
 		for flickrPhotoId in flickrIds:
-			try:
-				idClean = int(flickrPhotoId.strip())
+			idStrip = flickrPhotoId.strip()
+
+			if not unicode(idStrip).isnumeric():
+				continue
+
+			if 1:
+			#try:
+				idClean = int(idStrip)
 				photoInfo = photoEmbed.FlickrPhotoInfo(flickrHandle, idClean)
 				if int(photoInfo.usageCanShare) != 1: continue
 				photoSizes = photoEmbed.FlickrPhotoSizes(flickrHandle, idClean)
-			except:
-				continue
+			#except Exception as err:
+				#raise err			
+			#	continue
 
 			photos.append({'link':'https://www.flickr.com/photos/{0}/{1}'.format(urllib2.quote(photoInfo.ownerPathAlias), idClean),
 				'text':'{0} by {1}, on Flickr'.format(photoInfo.title, photoInfo.ownerRealName),

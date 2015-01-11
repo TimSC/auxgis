@@ -1,35 +1,57 @@
-import conf
+import conf, os, sqlitedict, time, json
 import flickrapi
-
-def DumpFlickrResult(result):
-	for photo in result:
-		for t in photo:
-			print t, t.attrib, t.text
-			for a in t:
-				print "\t", a, a.attrib
 
 def GetFlickrHandle():
 	flickr = flickrapi.FlickrAPI(conf.flickrKey, conf.flickrSecret)
 	return flickr
 
 class FlickrPhotoInfo(object):
-	def __init__(self, flickr, photo_id):
-		result = flickr.photos.getInfo(photo_id=photo_id)
+	def __init__(self, flickr, photo_id, enableCache=True):
+		self.flickr = flickr
+		
+		if enableCache:
+			curdir = os.path.dirname(__file__)
+			self.cache = sqlitedict.SqliteDict(os.path.join(curdir, 'FlickrPhotoInfo.db'), autocommit=False)
+		else:
+			self.cache = None
+
+		if self.cache:
+			#Check if photo is available in cache			
+			available = photo_id in self.cache
+			if available:
+				recordTime, recordData = self.cache[photo_id]
+				ageSec = time.time() - recordTime
+
+				#If not too old
+				if ageSec < 24*60*60:
+					#Use cached version
+					self._ExtractFields(json.loads(recordData))
+					return
+
+		self._RetrieveViaWeb(photo_id)
+
+	def __del__(self):
+		if self.cache is not None:
+			self.cache.commit()
+
+	def _ExtractFields(self, result):
+		photo = result["photo"]	
+
+		self.title = photo["title"]["_content"]
+		self.description = photo["description"]["_content"]
+		self.ownerRealName = photo["owner"]["realname"]
+		self.ownerUserName = photo["owner"]["username"]
+		self.ownerPathAlias = photo["owner"]["path_alias"]
+		self.usageCanShare = photo["usage"]["canshare"]
+
+	def _RetrieveViaWeb(self, photo_id):
+		resultJson = self.flickr.photos.getInfo(photo_id=photo_id, format='parsed-json')
 		self.title = None
 		self.description = None
-	
-		#DumpFlickrResult(result)	
 
-		#DumpResult(result)
-		if len(result) > 0:
-			photo = result[0]
-			self.title = photo.find("title").text
-			self.description = photo.find("description").text
-			self.ownerRealName = photo.find("owner").attrib["realname"]
-			self.ownerUserName = photo.find("owner").attrib["username"]
-			self.ownerPathAlias = photo.find("owner").attrib["path_alias"]
-			self.usageCanShare = photo.find("usage").attrib["canshare"]
-			print photo.find("owner").attrib
+		self._ExtractFields(resultJson)
+		if self.cache is not None:
+			self.cache[photo_id] = (time.time(), json.dumps(resultJson))
 
 class FlickrPhotoSizes(object):
 	def __init__(self, flickr, photo_id):
