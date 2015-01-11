@@ -42,6 +42,17 @@
 </p>
 {%endif%}
 
+<form method="GET" action="searchflickr">
+<p>
+Search: <input type="text" name="text" value="{{record.current.name|e}}"/><br/>
+Text: <input type="text" name="radius" value="1"/>km<br/>
+<input type="hidden" name="lat" value="{{record.fixedData.lat}}"/>
+<input type="hidden" name="lon" value="{{record.fixedData.lon}}"/>
+<input type="hidden" name="record" value="{{webinput.record}}"/>
+<input type="submit" value="Search"/>
+</p>
+</form>
+
 {%for wiki in wikis%}
 <h3>{{wiki.article|e}} from <a href="{{wiki.url|e}}">{{wiki.credit|e}}</a></h3>
 {{wiki.text}}

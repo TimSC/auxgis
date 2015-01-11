@@ -270,7 +270,11 @@ class RecordPage:
 				#raise err			
 			#	continue
 
-			photos.append({'link':'https://www.flickr.com/photos/{0}/{1}'.format(urllib2.quote(photoInfo.ownerPathAlias), idClean),
+			userPth = photoInfo.ownerUserName
+			if photoInfo.ownerPathAlias is not None:
+				userPth = photoInfo.ownerPathAlias
+
+			photos.append({'link':'https://www.flickr.com/photos/{0}/{1}'.format(urllib2.quote(userPth), idClean),
 				'text':'{0} by {1}, on Flickr'.format(photoInfo.title, photoInfo.ownerRealName),
 				'url': photoSizes.photoByWidth[150]["source"],
 				'alt':photoInfo.title,
@@ -322,4 +326,51 @@ class SearchNear:
 				pass
 
 		return app.RenderTemplate("searchnear.html", webinput=webinput, lat=lat, lon=lon, session = web.ctx.session)
+
+class SearchFlickr:
+	def GET(self):
+		db = web.ctx.db
+		webinput = web.input()
+
+		lat = 53.
+		lon = -1.2
+		if "lat" in webinput:
+			try:
+				lat = float(webinput["lat"])
+			except:
+				pass
+		if "lon" in webinput:
+			try:
+				lon = float(webinput["lon"])
+			except:
+				pass
+
+		flickrHandle = photoEmbed.GetFlickrHandle()
+		photoSearch = photoEmbed.FlickrSearch(flickrHandle, text=webinput["text"], lat=lat, lon=lon, radius=webinput["radius"])
+
+		photos = []
+		for photo in photoSearch.photos:
+			photoId = int(photo["id"])
+
+			photoInfo = photoEmbed.FlickrPhotoInfo(flickrHandle, photoId)
+			if int(photoInfo.usageCanShare) != 1: continue
+			photoSizes = photoEmbed.FlickrPhotoSizes(flickrHandle, photoId)
+
+			userPth = photoInfo.ownerUserName
+			if photoInfo.ownerPathAlias is not None:
+				userPth = photoInfo.ownerPathAlias
+
+			photos.append({'link':'https://www.flickr.com/photos/{0}/{1}'.format(urllib2.quote(userPth), photoId),
+				'text':'{0} by {1}, on Flickr'.format(photoInfo.title, photoInfo.ownerRealName),
+				'url': photoSizes.photoByWidth[150]["source"],
+				'alt': photoInfo.title,
+				'height': 150,
+				'width': 150,
+				'description': photoInfo.description,
+				})
+
+			if len(photos) >= 25: break
+
+		return app.RenderTemplate("searchflickr.html", webinput=webinput, lat=lat, lon=lon, session = web.ctx.session, photos=photos)
+
 

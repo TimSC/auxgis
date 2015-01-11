@@ -20,6 +20,7 @@ urls = (
 	'/logout', 'userpages.LogOut',
 	'/register', 'userpages.Register',
 	'/searchnear', 'webpages.SearchNear',
+	'/searchflickr', 'webpages.SearchFlickr',
 	)
 
 def Jinja2DateTime(value):

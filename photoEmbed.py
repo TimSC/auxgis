@@ -107,20 +107,23 @@ class FlickrPhotoSizes(object):
 			self.cache[photo_id] = (time.time(), sizeResultJson)
 
 class FlickrSearch(object):
-	def __init__(self, flickr, tags):
+	def __init__(self, flickr, tags=None, lat=None, lon=None, text=None,radius=None):
 
 		self.photos = []
-		result = flickr.photos.search(tags=tags)
-		for grp in result:
-			for p in grp:
-				self.photos.append(p.attrib)
+		sort = "interestingness-desc"
+		#sort = "date-posted-desc"
+
+		resultJson = flickr.photos.search(tags=tags, format='json', lat = lat, lon = lon, sort=sort, radius=radius, text=text)
+		result = json.loads(resultJson)
+		for p in result["photos"]["photo"]:
+			self.photos.append(p)
 		
 if __name__=="__main__":
 	print conf.flickrKey
 
 	flickr = flickrapi.FlickrAPI(conf.flickrKey, conf.flickrSecret)
 
-	if 1:
+	if 0:
 		photoInfo = FlickrPhotoInfo(flickr, 16060702179)
 		print photoInfo.title
 		print photoInfo.ownerRealName
@@ -133,5 +136,7 @@ if __name__=="__main__":
 	if 0:
 		search = FlickrSearch(flickr, "england_listed_building:entry=1377883")
 		print search.photos
-
+	if 1:
+		search = FlickrSearch(flickr, lat = 51.2410774907, lon = -0.589782409589, text="Cathedral")
+		print search.photos
 
