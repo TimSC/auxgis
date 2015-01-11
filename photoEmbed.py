@@ -6,9 +6,16 @@ def GetFlickrHandle():
 	return flickr
 
 class FlickrPhotoInfo(object):
-	def __init__(self, flickr, photo_id, enableCache=True):
+	def __init__(self, flickr, photo_id, enableCache=False):
 		self.flickr = flickr
-		
+
+		self.title = None
+		self.description = None
+		self.ownerRealName = None
+		self.ownerUserName = None
+		self.ownerPathAlias = None
+		self.usageCanShare = None
+
 		if enableCache:
 			curdir = os.path.dirname(__file__)
 			self.cache = sqlitedict.SqliteDict(os.path.join(curdir, 'FlickrPhotoInfo.db'), autocommit=False)
@@ -45,13 +52,11 @@ class FlickrPhotoInfo(object):
 		self.usageCanShare = photo["usage"]["canshare"]
 
 	def _RetrieveViaWeb(self, photo_id):
-		resultJson = self.flickr.photos.getInfo(photo_id=photo_id, format='parsed-json')
-		self.title = None
-		self.description = None
-
-		self._ExtractFields(resultJson)
+		resultJson = self.flickr.photos.getInfo(photo_id=photo_id, format='json')
+		result = json.loads(resultJson)
+		self._ExtractFields(result)
 		if self.cache is not None:
-			self.cache[photo_id] = (time.time(), json.dumps(resultJson))
+			self.cache[photo_id] = (time.time(), resultJson)
 
 class FlickrPhotoSizes(object):
 	def __init__(self, flickr, photo_id):
