@@ -225,13 +225,40 @@ class RecordPage:
 
 		record = Record(db, rowId)
 
-		formData = {}		
-		for key in webinput:
-			if key[:6] != "field_": continue
-			keyName = key[6:]
-			formData[keyName] = webinput[key]
+		if webinput["action"] == "Update record":
+			formData = {}		
+			for key in webinput:
+				if key[:6] != "field_": continue
+				keyName = key[6:]
+				formData[keyName] = webinput[key]
+			
+			record.Update(db, time.time(), web.ctx.session.username, formData)
 
-		record.Update(db, time.time(), web.ctx.session.username, formData)
+
+		if webinput["action"] == "Associate with record":
+
+			photoIds = []
+			for key in webinput:
+				prefix = key[:16]
+				if prefix != "checkbox-flickr-": continue
+				photoId = int(key[16:])
+				photoIds.append(photoId)
+
+			splitFlickrIds = record.current["flickr"].split(",")
+			currentFlickrIds = set()
+			for photoId in splitFlickrIds:
+				ps = unicode(photoId.strip())
+				if not ps.isnumeric(): continue
+				p = int(ps)
+				currentFlickrIds.add(p)
+
+			for photoId in photoIds:
+				currentFlickrIds.add(photoId)
+
+			currentFlickrStrIds = map(str, currentFlickrIds)
+
+			formData={'flickr': ",".join(currentFlickrStrIds)}
+			record.Update(db, time.time(), web.ctx.session.username, formData)
 
 		return self.Render()
 
@@ -367,6 +394,7 @@ class SearchFlickr:
 				'height': 150,
 				'width': 150,
 				'description': photoInfo.description,
+				'id': photoId,
 				})
 
 			if len(photos) >= 25: break
