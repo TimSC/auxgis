@@ -4,11 +4,11 @@ import mwparserfromhell
 class MediawikiArticle(object):
 	def __init__(self, articleName):
 
-		url = "https://en.wikipedia.org/w/api.php?format=json&action=query&titles={0}&prop=revisions&rvprop=content".format(urllib2.quote(articleName))
+		url = u"https://en.wikipedia.org/w/api.php?format=json&action=query&titles={0}&prop=revisions&rvprop=content&continue=".format(urllib2.quote(articleName))
 		#print url
 		ha = urllib2.urlopen(url)
 		result = ha.read()
-		#print result
+		print result
 		decodedResult = json.loads(result)	
 
 		pageIds = decodedResult["query"]["pages"].keys()
@@ -20,9 +20,29 @@ class MediawikiArticle(object):
 			wp = mwparserfromhell.parse(self.wikicode)
 			self.text = wp.strip_code()
 
-if __name__ == "__main__":
+class MediawikiSearch(object):
+	def __init__(self, lat, lon, radius):
 
-	wiki = MediawikiArticle("Stoughton Barracks")
-	print wiki.text
+		url = u"https://en.wikipedia.org/w/api.php?format=json&action=query&list=geosearch&gsradius={2}&gscoord={0}|{1}&continue=".format(lat,lon,radius)
+		#print url
+		ha = urllib2.urlopen(url)
+		result = ha.read()
+		#print result
+		decodedResult = json.loads(result)	
+
+		self.results = []
+		geoResults = decodedResult["query"]["geosearch"]
+		for result in geoResults:
+			self.results.append(result)
+
+
+if __name__ == "__main__":
+	if 0:
+		wiki = MediawikiArticle("Stoughton Barracks")
+		print wiki.text
+	if 1:
+		wiki = MediawikiSearch(37.786971, -122.399677, 10000)
+		for result in wiki.results:
+			print result
 
 

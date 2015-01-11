@@ -323,7 +323,7 @@ class RecordPage:
 		if wikipediaArticle is not None and len(wikipediaArticle) > 0:
 			article = wikiEmbed.MediawikiArticle(wikipediaArticle)
 			wikiEntry = {}
-			textExtract = SplitTextByParagraph(article.text, 500)
+			textExtract = SplitTextByParagraph(article.text, 1000)
 			wikiEntry["text"] = escape(textExtract).replace("\n", "<br/>")
 			wikiEntry["url"] = u"https://en.wikipedia.org/wiki/{0}".format(urllib2.quote(wikipediaArticle))
 			wikiEntry["credit"] = "Wikipedia"

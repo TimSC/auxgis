@@ -55,9 +55,13 @@ Search radius: <input type="text" name="radius" value="1"/>km<br/>
 </form>
 
 {%for wiki in wikis%}
-<h3>{{wiki.article|e}} from <a href="{{wiki.url|e}}">{{wiki.credit|e}}</a></h3>
+<div style="border-style:ridge">
+<h3><a href="{{wiki.url|e}}">{{wiki.article|e}}</a> from {{wiki.credit|e}}</h3>
 {{wiki.text}}
+</div>
 {%endfor%}
+
+<h3>Location</h3>
 
 <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
 
@@ -77,6 +81,8 @@ Search radius: <input type="text" name="radius" value="1"/>km<br/>
 
 </script>
 
+<h3>Edit log</h3>
+
 {%if record.editLog|length > 0%}
 <table>
 {%for edit in record.editLog%}
@@ -86,6 +92,13 @@ Search radius: <input type="text" name="radius" value="1"/>km<br/>
 {%endif%}
 
 <a href="nearby?lat={{record.fixedData.lat}}&lon={{record.fixedData.lon}}">Nearby records</a>
+
+<p>© English Heritage 2013. Contains Ordnance Survey data © Crown copyright
+and database right 2013.</p>
+<p>The English Heritage GIS Data contained in this material was obtained on
+2013. The most publicly available up to date English Heritage GIS Data can
+be obtained from <a href="http://www.english-heritage.org.uk">http://www.english-heritage.org.uk</a>.</p>
+
 </body>
 </html>
 
