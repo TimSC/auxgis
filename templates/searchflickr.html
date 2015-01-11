@@ -1,0 +1,49 @@
+<!doctype html> 
+<html>
+<head>
+<meta charset="utf-8"/> 
+<title>Search flickr</title>
+</head>
+<body>
+{% include 'inc-account-links.html' %}
+<h2>Search flickr</h2>
+
+{%if photos|length > 0%}
+<form method="POST" action="record?record={{webinput.record}}">
+<table>
+{%for photo in photos%}
+<tr>
+<td>
+<input type="checkbox" name="checkbox-flickr-{{photo.id|e}}"/>
+</td>
+<td>
+<a href="{{photo.link|e}}" title="{{photo.text|e}}"><img src="{{photo.url|e}}" width="{{photo.width|e}}" height="{{photo.height|e}}" alt="{{photo.alt|e}}"></a>
+</td>
+<td><h3>{{photo.text|e}}</h3><br/> {{photo.description|e}}</td>
+</tr>
+{%endfor%}
+</table>
+<input type="hidden" name="record" value="{{webinput.record}}"/>
+<p><input type="submit" name="action" value="Associate with record"/></p>
+
+</form>
+{%endif%}
+
+<h3>New search</h3>
+<form method="GET" action="">
+<p>
+Search: <input type="text" name="text" value="{{webinput.text}}"/><br/>
+Limit to area: <input type="checkbox" name="limitarea"{%if webinput.limitarea == "on"%} checked{%endif%}/><br/>
+Search radius: <input type="text" name="radius" value="{{webinput.radius}}"/>km<br/>
+<input type="hidden" name="lat" value="{{webinput.lat}}"/>
+<input type="hidden" name="lon" value="{{webinput.lon}}"/>
+<input type="hidden" name="record" value="{{webinput.record}}"/>
+<input type="submit" value="Search"/>
+</p>
+</form>
+
+<p><a href="record?record={{webinput.record}}">Back to record</a></p>
+
+</body>
+</html>
+
