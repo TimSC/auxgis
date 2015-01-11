@@ -1,6 +1,0 @@
-[submodule "static/Leaflet"]
-	path = static/Leaflet
-	url = https://github.com/Leaflet/Leaflet.git
-[submodule "sqlitedict"]
-	path = sqlitedict
-	url = https://github.com/piskvorky/sqlitedict.git
