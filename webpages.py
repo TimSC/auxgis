@@ -263,6 +263,11 @@ class RecordPage:
 			formData={'flickr': ",".join(currentFlickrStrIds)}
 			record.Update(db, time.time(), web.ctx.session.username, formData)
 
+		if webinput["action"] == "Associate article with record":
+
+			formData={'wikipedia': webinput["article"]}
+			record.Update(db, time.time(), web.ctx.session.username, formData)
+
 		return self.Render()
 
 	def Render(self, actionMessage = None):
@@ -412,4 +417,32 @@ class SearchFlickr:
 
 		return app.RenderTemplate("searchflickr.html", webinput=webinput, lat=lat, lon=lon, session = web.ctx.session, photos=photos)
 
+
+class SearchWikipedia:
+	def GET(self):
+		db = web.ctx.db
+		webinput = web.input()
+
+		lat = 53.
+		lon = -1.2
+		if "lat" in webinput:
+			try:
+				lat = float(webinput["lat"])
+			except:
+				pass
+		if "lon" in webinput:
+			try:
+				lon = float(webinput["lon"])
+			except:
+				pass
+
+		photos = []
+
+		searchResult = wikiEmbed.MediawikiSearch(lat, lon, webinput["radius"])
+		result = []
+		for r in searchResult.results:
+			r["url"] = u"https://en.wikipedia.org/wiki/{0}".format(urllib2.quote(r["title"]))
+			result.append(r)
+
+		return app.RenderTemplate("searchwikipedia.html", webinput=webinput, lat=lat, lon=lon, session = web.ctx.session, photos=photos, result=result)
 

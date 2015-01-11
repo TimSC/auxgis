@@ -50,7 +50,7 @@ Search radius: <input type="text" name="radius" value="1"/>km<br/>
 <input type="hidden" name="lat" value="{{record.fixedData.lat}}"/>
 <input type="hidden" name="lon" value="{{record.fixedData.lon}}"/>
 <input type="hidden" name="record" value="{{webinput.record}}"/>
-<input type="submit" value="Search"/>
+<input type="submit" value="Search flickr"/>
 </p>
 </form>
 
@@ -60,6 +60,16 @@ Search radius: <input type="text" name="radius" value="1"/>km<br/>
 {{wiki.text}}
 </div>
 {%endfor%}
+
+<form method="GET" action="searchwikipedia">
+<p>
+Search radius: <input type="text" name="radius" value="10000"/>metres<br/>
+<input type="hidden" name="lat" value="{{record.fixedData.lat}}"/>
+<input type="hidden" name="lon" value="{{record.fixedData.lon}}"/>
+<input type="hidden" name="record" value="{{webinput.record}}"/>
+<input type="submit" value="Search Wikipedia"/>
+</p>
+</form>
 
 <h3>Location</h3>
 
@@ -93,11 +103,13 @@ Search radius: <input type="text" name="radius" value="1"/>km<br/>
 
 <a href="nearby?lat={{record.fixedData.lat}}&lon={{record.fixedData.lon}}">Nearby records</a>
 
+{%if record.fixedData.source == "ListedBuildings"%}
 <p>© English Heritage 2013. Contains Ordnance Survey data © Crown copyright
 and database right 2013.</p>
 <p>The English Heritage GIS Data contained in this material was obtained on
 2013. The most publicly available up to date English Heritage GIS Data can
 be obtained from <a href="http://www.english-heritage.org.uk">http://www.english-heritage.org.uk</a>.</p>
+{%endif%}
 
 </body>
 </html>

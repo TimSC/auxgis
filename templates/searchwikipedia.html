@@ -1,0 +1,46 @@
+<!doctype html> 
+<html>
+<head>
+<meta charset="utf-8"/> 
+<title>Search flickr</title>
+</head>
+<body>
+{% include 'inc-account-links.html' %}
+<h2>Search flickr</h2>
+
+{%if result|length > 0%}
+<form method="POST" action="record?record={{webinput.record}}">
+<table>
+{%for record in result%}
+<tr>
+<td>
+<input name="article" type="radio" value="{{record.title|e}}"/>
+</td>
+<td>
+<a href="{{record.url|e}}">{{record.title|e}}</a>
+</td>
+</tr>
+{%endfor%}
+</table>
+<input type="hidden" name="record" value="{{webinput.record}}"/>
+<p><input type="submit" name="action" value="Associate article with record"/></p>
+
+</form>
+{%endif%}
+
+<h3>New search</h3>
+<form method="GET" action="">
+<p>
+Search radius: <input type="text" name="radius" value="{{webinput.radius}}"/>metres<br/>
+<input type="hidden" name="lat" value="{{webinput.lat}}"/>
+<input type="hidden" name="lon" value="{{webinput.lon}}"/>
+<input type="hidden" name="record" value="{{webinput.record}}"/>
+<input type="submit" value="Search"/>
+</p>
+</form>
+
+<p><a href="record?record={{webinput.record}}">Back to record</a></p>
+
+</body>
+</html>
+
