@@ -320,6 +320,23 @@ class WikipediaPlugin(object):
 			formData={'wikipedia': webinput["article"]}
 			record.Update(db, time.time(), web.ctx.session.username, formData)
 
+class RawEditPlugin(object):
+	def __init__(self):
+		pass
+
+	def PrepareData(self, record):
+		return {}
+
+	def ProcessWebPost(self, db, webinput, record):
+		if webinput["action"] == "Update record":
+			formData = {}		
+			for key in webinput:
+				if key[:6] != "field_": continue
+				keyName = key[6:]
+				formData[keyName] = webinput[key]
+			
+			record.Update(db, time.time(), web.ctx.session.username, formData)
+
 class RecordPage(object):
 	def GET(self):
 		return self.Render()
@@ -334,20 +351,14 @@ class RecordPage(object):
 
 		record = Record(db, rowId)
 
-		if webinput["action"] == "Update record":
-			formData = {}		
-			for key in webinput:
-				if key[:6] != "field_": continue
-				keyName = key[6:]
-				formData[keyName] = webinput[key]
-			
-			record.Update(db, time.time(), web.ctx.session.username, formData)
+		rawEditPlugin = RawEditPlugin()
+		rawEditPlugin.ProcessWebPost(db, webinput, record)
 
 		flickrPlugin = FlickrPlugin()
-		results = flickrPlugin.ProcessWebPost(db, webinput, record)
+		flickrPlugin.ProcessWebPost(db, webinput, record)
 
 		wikiPlugin = WikipediaPlugin()
-		results = wikiPlugin.ProcessWebPost(db, webinput, record)
+		wikiPlugin.ProcessWebPost(db, webinput, record)
 
 		return self.Render()
 
@@ -359,6 +370,10 @@ class RecordPage(object):
 		record = Record(db, rowId)
 		collectedPluginResults = {}
 
+		rawEditPlugin = RawEditPlugin()
+		pluginResults = rawEditPlugin.PrepareData(record)
+		collectedPluginResults.update(pluginResults)
+
 		flickrPlugin = FlickrPlugin()
 		pluginResults = flickrPlugin.PrepareData(record)
 		collectedPluginResults.update(pluginResults)
@@ -367,7 +382,7 @@ class RecordPage(object):
 		pluginResults = wikiPlugin.PrepareData(record)
 		collectedPluginResults.update(pluginResults)
 
-		pluginIncs = ['inc-record-flickr.html', 'inc-record-wikipedia.html']
+		pluginIncs = ['inc-record-rawedit.html', 'inc-record-flickr.html', 'inc-record-wikipedia.html']
 
 		return app.RenderTemplate("record.html", record=record, 
 			webinput=webinput, pluginIncs = pluginIncs,

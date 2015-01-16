@@ -15,28 +15,13 @@
 <p>{{actionMessage}}<p>
 {%endif%}
 
-<form method="POST">
-<table>
-{%for k, v in record.current.iteritems()%}
-<tr><td>{{k|e}}</td><td><input type="text" name="field_{{k|e}}" value="{{v|e}}"/></td></tr>
-{%endfor%}
-</table>
-<input name="action" type="submit" value="Update record"/>
-</form>
-
-<table>
-{%for k, v in record.fixedData.iteritems()%}
-<tr><td>{{k|e}}</td><td>{{v|e}}</td></tr>
-{%endfor%}
-</table>
+{% for incPage in pluginIncs %}
+{% include incPage %}
+{% endfor %}
 
 {%if record.fixedData.source == "ListedBuildings"%}
 <a href="http://list.english-heritage.org.uk/resultsingle.aspx?uid={{record.current.ListEntry}}">English Heritage record</a>
 {%endif%}
-
-{% for incPage in pluginIncs %}
-{% include incPage %}
-{% endfor %}
 
 <h3>Location</h3>
 
