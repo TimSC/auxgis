@@ -292,6 +292,34 @@ class FlickrPlugin(object):
 			formData={'flickr': ",".join(currentFlickrStrIds)}
 			record.Update(db, time.time(), web.ctx.session.username, formData)
 
+class WikipediaPlugin(object):
+	def __init__(self):
+		pass
+
+	def PrepareData(self, record):
+		#Process wikipedia link into embeded text
+		wikipediaArticle = record.current["wikipedia"]
+		wikis = []
+
+		if wikipediaArticle is not None and len(wikipediaArticle) > 0:
+			article = wikiEmbed.MediawikiArticle(wikipediaArticle)
+			wikiEntry = {}
+			textExtract = SplitTextByParagraph(article.text, 1000)
+			wikiEntry["text"] = escape(textExtract).replace("\n", "<br/>")
+			wikiEntry["url"] = u"https://en.wikipedia.org/wiki/{0}".format(urllib2.quote(wikipediaArticle))
+			wikiEntry["credit"] = "Wikipedia"
+			wikiEntry["article"] = wikipediaArticle
+
+			wikis.append(wikiEntry)
+
+		return {"wikis": wikis}
+
+	def ProcessWebPost(self, db, webinput, record):
+		if webinput["action"] == "Associate article with record":
+
+			formData={'wikipedia': webinput["article"]}
+			record.Update(db, time.time(), web.ctx.session.username, formData)
+
 class RecordPage(object):
 	def GET(self):
 		return self.Render()
@@ -318,10 +346,8 @@ class RecordPage(object):
 		flickrPlugin = FlickrPlugin()
 		results = flickrPlugin.ProcessWebPost(db, webinput, record)
 
-		if webinput["action"] == "Associate article with record":
-
-			formData={'wikipedia': webinput["article"]}
-			record.Update(db, time.time(), web.ctx.session.username, formData)
+		wikiPlugin = WikipediaPlugin()
+		results = wikiPlugin.ProcessWebPost(db, webinput, record)
 
 		return self.Render()
 
@@ -337,23 +363,14 @@ class RecordPage(object):
 		pluginResults = flickrPlugin.PrepareData(record)
 		collectedPluginResults.update(pluginResults)
 
-		#Process wikipedia link into embeded text
-		wikipediaArticle = record.current["wikipedia"]
-		wikis = []
+		wikiPlugin = WikipediaPlugin()
+		pluginResults = wikiPlugin.PrepareData(record)
+		collectedPluginResults.update(pluginResults)
 
-		if wikipediaArticle is not None and len(wikipediaArticle) > 0:
-			article = wikiEmbed.MediawikiArticle(wikipediaArticle)
-			wikiEntry = {}
-			textExtract = SplitTextByParagraph(article.text, 1000)
-			wikiEntry["text"] = escape(textExtract).replace("\n", "<br/>")
-			wikiEntry["url"] = u"https://en.wikipedia.org/wiki/{0}".format(urllib2.quote(wikipediaArticle))
-			wikiEntry["credit"] = "Wikipedia"
-			wikiEntry["article"] = wikipediaArticle
-
-			wikis.append(wikiEntry)
+		pluginIncs = ['inc-record-flickr.html', 'inc-record-wikipedia.html']
 
 		return app.RenderTemplate("record.html", record=record, 
-			webinput=webinput, wikis=wikis, 
+			webinput=webinput, pluginIncs = pluginIncs,
 			actionMessage = actionMessage,
 			session = web.ctx.session, **collectedPluginResults)
 

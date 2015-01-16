@@ -1,0 +1,16 @@
+{%for wiki in wikis%}
+<div style="border-style:ridge">
+<h3><a href="{{wiki.url|e}}">{{wiki.article|e}}</a> from {{wiki.credit|e}}</h3>
+{{wiki.text}}
+</div>
+{%endfor%}
+
+<form method="GET" action="searchwikipedia">
+<p>
+Search radius: <input type="text" name="radius" value="10000"/>metres<br/>
+<input type="hidden" name="lat" value="{{record.fixedData.lat}}"/>
+<input type="hidden" name="lon" value="{{record.fixedData.lon}}"/>
+<input type="hidden" name="record" value="{{webinput.record}}"/>
+<input type="submit" value="Search Wikipedia"/>
+</p>
+</form>

@@ -34,42 +34,9 @@
 <a href="http://list.english-heritage.org.uk/resultsingle.aspx?uid={{record.current.ListEntry}}">English Heritage record</a>
 {%endif%}
 
-{%if photos|length > 0%}
-<p>
-{%for photo in photos%}
-<a href="{{photo.link|e}}" title="{{photo.text|e}}"><img src="{{photo.url|e}}" width="{{photo.width|e}}" height="{{photo.height|e}}" alt="{{photo.alt|e}}"></a>
-{%endfor%}
-</p>
-{%endif%}
-
-<form method="GET" action="searchflickr">
-<p>
-Search: <input type="text" name="text" value="{{record.current.name|e}}"/><br/>
-Limit to area: <input type="checkbox" name="limitarea" checked/><br/>
-Search radius: <input type="text" name="radius" value="1"/>km<br/>
-<input type="hidden" name="lat" value="{{record.fixedData.lat}}"/>
-<input type="hidden" name="lon" value="{{record.fixedData.lon}}"/>
-<input type="hidden" name="record" value="{{webinput.record}}"/>
-<input type="submit" value="Search flickr"/>
-</p>
-</form>
-
-{%for wiki in wikis%}
-<div style="border-style:ridge">
-<h3><a href="{{wiki.url|e}}">{{wiki.article|e}}</a> from {{wiki.credit|e}}</h3>
-{{wiki.text}}
-</div>
-{%endfor%}
-
-<form method="GET" action="searchwikipedia">
-<p>
-Search radius: <input type="text" name="radius" value="10000"/>metres<br/>
-<input type="hidden" name="lat" value="{{record.fixedData.lat}}"/>
-<input type="hidden" name="lon" value="{{record.fixedData.lon}}"/>
-<input type="hidden" name="record" value="{{webinput.record}}"/>
-<input type="submit" value="Search Wikipedia"/>
-</p>
-</form>
+{% for incPage in pluginIncs %}
+{% include incPage %}
+{% endfor %}
 
 <h3>Location</h3>
 
