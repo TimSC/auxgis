@@ -75,14 +75,14 @@ def GetRecordsNear(db, lat, lon):
 	records = [tmp[1] for tmp in sortableResults]
 	return records
 
-class FrontPage:
+class FrontPage(object):
 	def GET(self):
 		db = web.ctx.db
 		webinput = web.input()
 		
 		return "Front page"
 
-class Nearby:
+class Nearby(object):
 	def GET(self):
 		db = web.ctx.db
 		webinput = web.input()
@@ -99,7 +99,7 @@ class Nearby:
 		return app.RenderTemplate("nearby.html", records=records[:100], 
 			webinput=webinput, lat=lat, lon=lon, session = web.session)
 
-class NearbyGpx:
+class NearbyGpx(object):
 	def GET(self):
 		db = web.ctx.db
 		webinput = web.input()
@@ -210,72 +210,11 @@ def SplitTextByParagraph(text, targetNumChars):
 
 	return best
 
+class FlickrPlugin(object):
+	def __init__(self):
+		pass
 
-class RecordPage:
-	def GET(self):
-		return self.Render()
-
-	def POST(self):
-		db = web.ctx.db
-		webinput = web.input()
-		rowId = int(webinput["record"])
-
-		if web.ctx.session.get("username", None) == None:
-			return self.Render("Log in first")
-
-		record = Record(db, rowId)
-
-		if webinput["action"] == "Update record":
-			formData = {}		
-			for key in webinput:
-				if key[:6] != "field_": continue
-				keyName = key[6:]
-				formData[keyName] = webinput[key]
-			
-			record.Update(db, time.time(), web.ctx.session.username, formData)
-
-
-		if webinput["action"] == "Associate with record":
-
-			photoIds = []
-			for key in webinput:
-				prefix = key[:16]
-				if prefix != "checkbox-flickr-": continue
-				photoId = int(key[16:])
-				photoIds.append(photoId)
-
-			splitFlickrIds = record.current["flickr"].split(",")
-			currentFlickrIds = set()
-			for photoId in splitFlickrIds:
-				ps = unicode(photoId.strip())
-				if not ps.isnumeric(): continue
-				p = int(ps)
-				currentFlickrIds.add(p)
-
-			for photoId in photoIds:
-				currentFlickrIds.add(photoId)
-
-			currentFlickrIdsSortable = list(currentFlickrIds)
-			currentFlickrIdsSortable.sort()
-
-			currentFlickrStrIds = map(str, currentFlickrIdsSortable)
-
-			formData={'flickr': ",".join(currentFlickrStrIds)}
-			record.Update(db, time.time(), web.ctx.session.username, formData)
-
-		if webinput["action"] == "Associate article with record":
-
-			formData={'wikipedia': webinput["article"]}
-			record.Update(db, time.time(), web.ctx.session.username, formData)
-
-		return self.Render()
-
-	def Render(self, actionMessage = None):
-		db = web.ctx.db
-		webinput = web.input()
-		rowId = int(webinput["record"])
-
-		record = Record(db, rowId)
+	def PrepareData(self, record):
 
 		#Get stored flickr IDs
 		flickrIds = set(record.current["flickr"].split(","))
@@ -321,6 +260,83 @@ class RecordPage:
 				'width': 150
 				})
 
+		return {'photos': photos}
+
+	def ProcessWebPost(self, db, webinput, record):
+		
+		if webinput["action"] == "Associate with record":
+
+			photoIds = []
+			for key in webinput:
+				prefix = key[:16]
+				if prefix != "checkbox-flickr-": continue
+				photoId = int(key[16:])
+				photoIds.append(photoId)
+
+			splitFlickrIds = record.current["flickr"].split(",")
+			currentFlickrIds = set()
+			for photoId in splitFlickrIds:
+				ps = unicode(photoId.strip())
+				if not ps.isnumeric(): continue
+				p = int(ps)
+				currentFlickrIds.add(p)
+
+			for photoId in photoIds:
+				currentFlickrIds.add(photoId)
+
+			currentFlickrIdsSortable = list(currentFlickrIds)
+			currentFlickrIdsSortable.sort()
+
+			currentFlickrStrIds = map(str, currentFlickrIdsSortable)
+
+			formData={'flickr': ",".join(currentFlickrStrIds)}
+			record.Update(db, time.time(), web.ctx.session.username, formData)
+
+class RecordPage(object):
+	def GET(self):
+		return self.Render()
+
+	def POST(self):
+		db = web.ctx.db
+		webinput = web.input()
+		rowId = int(webinput["record"])
+
+		if web.ctx.session.get("username", None) == None:
+			return self.Render("Log in first")
+
+		record = Record(db, rowId)
+
+		if webinput["action"] == "Update record":
+			formData = {}		
+			for key in webinput:
+				if key[:6] != "field_": continue
+				keyName = key[6:]
+				formData[keyName] = webinput[key]
+			
+			record.Update(db, time.time(), web.ctx.session.username, formData)
+
+		flickrPlugin = FlickrPlugin()
+		results = flickrPlugin.ProcessWebPost(db, webinput, record)
+
+		if webinput["action"] == "Associate article with record":
+
+			formData={'wikipedia': webinput["article"]}
+			record.Update(db, time.time(), web.ctx.session.username, formData)
+
+		return self.Render()
+
+	def Render(self, actionMessage = None):
+		db = web.ctx.db
+		webinput = web.input()
+		rowId = int(webinput["record"])
+
+		record = Record(db, rowId)
+		collectedPluginResults = {}
+
+		flickrPlugin = FlickrPlugin()
+		pluginResults = flickrPlugin.PrepareData(record)
+		collectedPluginResults.update(pluginResults)
+
 		#Process wikipedia link into embeded text
 		wikipediaArticle = record.current["wikipedia"]
 		wikis = []
@@ -337,11 +353,11 @@ class RecordPage:
 			wikis.append(wikiEntry)
 
 		return app.RenderTemplate("record.html", record=record, 
-			webinput=webinput, photos=photos, wikis=wikis, 
+			webinput=webinput, wikis=wikis, 
 			actionMessage = actionMessage,
-			session = web.ctx.session)
+			session = web.ctx.session, **collectedPluginResults)
 
-class SearchNear:
+class SearchNear(object):
 	def GET(self):
 		db = web.ctx.db
 		webinput = web.input()
@@ -361,7 +377,7 @@ class SearchNear:
 
 		return app.RenderTemplate("searchnear.html", webinput=webinput, lat=lat, lon=lon, session = web.ctx.session)
 
-class SearchFlickr:
+class SearchFlickr(object):
 	def GET(self):
 		db = web.ctx.db
 		webinput = web.input()
@@ -418,7 +434,7 @@ class SearchFlickr:
 		return app.RenderTemplate("searchflickr.html", webinput=webinput, lat=lat, lon=lon, session = web.ctx.session, photos=photos)
 
 
-class SearchWikipedia:
+class SearchWikipedia(object):
 	def GET(self):
 		db = web.ctx.db
 		webinput = web.input()
