@@ -1,5 +1,5 @@
 import web, app, math, json, time, copy, gpxutils, StringIO
-import photoEmbed, wikiEmbed
+from plugins import photoEmbed, wikiEmbed
 from xml.sax.saxutils import escape, unescape
 import urllib2
 
