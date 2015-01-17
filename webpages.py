@@ -176,6 +176,17 @@ class Record(object):
 				self.current[field] = ""
 		
 	def Update(self, db, updateTime, user, newValues):
+		#Validate lat, lon
+		if "lat" in newValues:
+			newValues["lat"] = float(newValues["lat"])
+			if newValues["lat"] < -90.: newValues["lat"] = -90.
+			if newValues["lat"] > 90.: newValues["lat"] = 90.
+
+		if "lon" in newValues:
+			newValues["lon"] = float(newValues["lon"])
+			if newValues["lon"] < -180.: newValues["lon"] = -180.
+			if newValues["lon"] > 180.: newValues["lon"] = 180.
+
 		#See what has been changed
 		changedData = {}
 		for key in newValues:
@@ -250,7 +261,9 @@ class RecordPage(object):
 		collectedPluginResults.update(pluginResults)
 
 		pluginHeaderIncs = ['inc-record-map-header.html']
-		pluginIncs = ['inc-record-rawedit.html', 'inc-record-flickr.html', 'inc-record-wikipedia.html', 'inc-record-map.html']
+		pluginIncs = ['inc-record-rawedit.html', 
+			'inc-record-flickr.html', 'inc-record-wikipedia.html', 
+			'inc-record-map.html', 'inc-record-editlog.html']
 
 		return app.RenderTemplate("record.html", record=record, 
 			webinput=webinput, pluginIncs = pluginIncs,
