@@ -270,13 +270,13 @@ class PluginPage(object):
 		action = webinput["action"]
 		
 		if plugin == "photo":
-			flickrPlugin = photoEmbed.SearchFlickr()
-			template, params = flickrPlugin.GET()
+			flickrPlugin = photoEmbed.FlickrPlugin()
+			template, params = flickrPlugin.PluginPage(action)
 			return app.RenderTemplate(template, webinput=webinput, session = web.ctx.session, **params)
 
 		if plugin == "wiki":
-			wikiPlugin = wikiEmbed.SearchWikipedia()
-			template, params = wikiPlugin.GET()
+			wikiPlugin = wikiEmbed.WikipediaPlugin()
+			template, params = wikiPlugin.PluginPage(action)
 			return app.RenderTemplate(template, webinput=webinput, session = web.ctx.session, **params)
 
 	def POST(self):

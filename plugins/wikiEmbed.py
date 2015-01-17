@@ -119,36 +119,36 @@ class WikipediaPlugin(object):
 			formData={'wikipedia': webinput["article"]}
 			record.Update(db, time.time(), web.ctx.session.username, formData)
 
-class SearchWikipedia(object):
-	def GET(self):
-		db = web.ctx.db
-		webinput = web.input()
+	def PluginPage(self, action):
+		if action == "search":
+			db = web.ctx.db
+			webinput = web.input()
 
-		lat = 53.
-		lon = -1.2
-		if "lat" in webinput:
-			try:
-				lat = float(webinput["lat"])
-			except:
-				pass
-		if "lon" in webinput:
-			try:
-				lon = float(webinput["lon"])
-			except:
-				pass
+			lat = 53.
+			lon = -1.2
+			if "lat" in webinput:
+				try:
+					lat = float(webinput["lat"])
+				except:
+					pass
+			if "lon" in webinput:
+				try:
+					lon = float(webinput["lon"])
+				except:
+					pass
 
-		searchResult = MediawikiSearch(lat, lon, webinput["radius"])
-		result = []
-		for r in searchResult.results:
-			r["url"] = u"https://en.wikipedia.org/wiki/{0}".format(urllib2.quote(r["title"]))
-			result.append(r)
+			searchResult = MediawikiSearch(lat, lon, webinput["radius"])
+			result = []
+			for r in searchResult.results:
+				r["url"] = u"https://en.wikipedia.org/wiki/{0}".format(urllib2.quote(r["title"]))
+				result.append(r)
 
-		out = {}
-		out["lat"] = lat
-		out["lon"] = lon
-		out["result"] = result
+			out = {}
+			out["lat"] = lat
+			out["lon"] = lon
+			out["result"] = result
 
-		return ("searchwikipedia.html", out)
+			return ("searchwikipedia.html", out)
 
 
 if __name__ == "__main__":
