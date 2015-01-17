@@ -3,7 +3,11 @@
 <head>
 <meta charset="utf-8"/> 
 <title>{{record.current.name|e}}</title>
-<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+
+{% for incPage in pluginHeaderIncs %}
+{% include incPage %}
+{% endfor %}
+
 </head>
 <body>
 
@@ -23,25 +27,7 @@
 <a href="http://list.english-heritage.org.uk/resultsingle.aspx?uid={{record.current.ListEntry}}">English Heritage record</a>
 {%endif%}
 
-<h3>Location</h3>
 
-<script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
-
-<div id="map" style="height:380px; width:50%;"></div>
-
-
-<script>
-
-	var map = L.map('map').setView([{{record.fixedData.lat}}, {{record.fixedData.lon}}], 15);
-
-	L.tileLayer('http://draco.openstreetmap.org/sv-2013-11/{z}/{x}/{y}.png', {
-		attribution: 'Map data &copy; <a href="http://www.ordnancesurvey.co.uk/business-and-government/products/opendata-products.html">Ordnance Survey Data</a> © Crown copyright and database right 2013. Hosted by <a href="http://www.openstreetmap.org/">OSM</a>.',
-		maxZoom: 17
-	}).addTo(map);
-
-	var marker = L.marker([{{record.fixedData.lat}}, {{record.fixedData.lon}}]).addTo(map);
-
-</script>
 
 <h3>Edit log</h3>
 

@@ -236,10 +236,12 @@ class RecordPage(object):
 		pluginResults = wikiPlugin.PrepareData(record)
 		collectedPluginResults.update(pluginResults)
 
-		pluginIncs = ['inc-record-rawedit.html', 'inc-record-flickr.html', 'inc-record-wikipedia.html']
+		pluginHeaderIncs = ['inc-record-map-header.html']
+		pluginIncs = ['inc-record-rawedit.html', 'inc-record-flickr.html', 'inc-record-wikipedia.html', 'inc-record-map.html']
 
 		return app.RenderTemplate("record.html", record=record, 
 			webinput=webinput, pluginIncs = pluginIncs,
+			pluginHeaderIncs = pluginHeaderIncs,
 			actionMessage = actionMessage,
 			session = web.ctx.session, **collectedPluginResults)
 
