@@ -8,7 +8,7 @@
 <body>
 {% include 'inc-account-links.html' %}
 <h2>Search Near</h2>
-
+<p>Click on map to update search location</p>
 <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
 
 <div id="map" style="height:380px;"></div>
@@ -39,6 +39,8 @@
 	map.on('click', onMapClick);
 
 </script>
+
+<p><a href="recentchanges">Recent changes</a></p>
 
 </body>
 </html>

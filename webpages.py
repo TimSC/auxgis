@@ -149,13 +149,16 @@ class NearbyGpx(object):
 		return buff.getvalue()
 
 class Record(object):
-	def __init__(self, db, rowId):
+	def __init__(self, db, rowId, recentChangeTracker = None):
 		self.rowId = rowId
+		self.recentChangeTracker = recentChangeTracker
 		self.extendedFields = ["description", "flickr", "wikipedia"]
 
 		vars2 = {"id": rowId}
 		dataResults = db.select("data", where="id=$id", vars=vars2, limit = 1)
 		dataResults = list(dataResults)
+		if len(dataResults) == 0:
+			raise RuntimeError("Record not found")
 		self.current = dict(dataResults[0])
 
 		extendedData = json.loads(self.current["extended"])
@@ -215,6 +218,11 @@ class Record(object):
 		if len(changedData) == 0:
 			return
 
+		#Track recent changes
+		updateJosn = json.dumps(changedData)
+		if self.recentChangeTracker is not None:
+			self.recentChangeTracker.Updated(user, updateTime, updateJosn, self.rowId)
+
 		#Update record in database
 		vars2 = {"id": self.rowId}
 		self.edits.append(((user, updateTime), changedData))
@@ -233,6 +241,14 @@ class Record(object):
 		if len(spatialChange) > 0:
 			db.update("pos", where="id=$id", vars=vars2, **spatialChange)
 
+class RecentChangeTracker(object):
+	def __init__(self, db):
+		self.db = db
+
+	def Updated(self, user, updateTime, changedFieldsJosn, recordId):
+		results = self.db.insert("recentchanges", username = user, modifyTime = updateTime, 
+			edits = changedFieldsJosn, recordId = recordId)
+
 class RecordPage(object):
 	def GET(self):
 		return self.Render()
@@ -245,7 +261,8 @@ class RecordPage(object):
 		if web.ctx.session.get("username", None) == None:
 			return self.Render("Log in first")
 
-		record = Record(db, rowId)
+		recentChangeTracker = RecentChangeTracker(db)
+		record = Record(db, rowId, recentChangeTracker)
 
 		#Enumerate plugins
 		plugins = GetPlugins(record.fixedData["source"])
@@ -266,7 +283,8 @@ class RecordPage(object):
 		webinput = web.input()
 		rowId = int(webinput["record"])
 
-		record = Record(db, rowId)
+		recentChangeTracker = RecentChangeTracker(db)
+		record = Record(db, rowId, recentChangeTracker)
 		collectedPluginResults = {}
 		pluginHeaderIncs = []
 		pluginIncs = []
@@ -354,4 +372,27 @@ class PluginPage(object):
 
 	def POST(self):
 		return GET(self)
+
+class RecentChanges(object):
+	def GET(self):
+		db = web.ctx.db
+		webinput = web.input()
+
+		changes = db.select("recentchanges", order="modifyTime DESC", limit = 100)
+		changes = list(changes)
+		recordDict = {}
+
+		for change in changes:
+			recordId = change["recordId"]
+			if recordId in recordDict: continue
+
+			record = Record(db, recordId)	
+			recordDict[recordId] = record
+
+		return app.RenderTemplate("recentchanges.html", webinput=webinput, session = web.ctx.session, 
+			changes = changes, recordDict = recordDict)
+
+
+
+
 

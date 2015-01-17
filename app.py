@@ -21,6 +21,7 @@ urls = (
 	'/register', 'userpages.Register',
 	'/searchnear', 'webpages.SearchNear',
 	'/plugin', 'webpages.PluginPage',
+	'/recentchanges', 'webpages.RecentChanges',
 	)
 
 def Jinja2DateTime(value):

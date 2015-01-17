@@ -44,6 +44,17 @@ if __name__=="__main__":
 	except Exception as err:
 		print "Could not create index username_index,", err
 
+	try:
+		c.execute('''CREATE TABLE recentchanges
+				(id INTEGER PRIMARY KEY AUTOINCREMENT, 
+				username text, 
+				modifyTime float, 
+				recordId INTEGER,
+				edits text
+				);''')
+	except Exception as err:
+		print "Could not create table recentchanges,", err
+
 	conn.commit()
 	users.commit()
 
