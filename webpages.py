@@ -164,7 +164,7 @@ class Record(object):
 
 		#Separate special fixed fields into separate store
 		self.fixedData = {}
-		fixedFields = ["lat", "lon", "id", "source"]
+		fixedFields = ["id", "source"]
 		for fixedField in fixedFields:
 			if fixedField in self.current:
 				self.fixedData[fixedField] = self.current[fixedField]
@@ -186,10 +186,23 @@ class Record(object):
 		if len(changedData) == 0:
 			return
 
+		#Update record in database
 		vars2 = {"id": self.rowId}
 		self.edits.append(((user, updateTime), changedData))
 		changedFieldsJosn = json.dumps(self.edits)
 		db.update("data", where="id=$id", vars=vars2, edits=changedFieldsJosn)
+
+		#Update spatial table in database
+		spatialChange = {}
+		if "lat" in changedData:
+			spatialChange["minLat"] = changedData["lat"]
+			spatialChange["maxLat"] = changedData["lat"]
+		if "lon" in changedData:
+			spatialChange["minLon"] = changedData["lon"]
+			spatialChange["maxLon"] = changedData["lon"]
+
+		if len(spatialChange) > 0:
+			db.update("pos", where="id=$id", vars=vars2, **spatialChange)
 
 class RecordPage(object):
 	def GET(self):
