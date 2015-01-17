@@ -81,6 +81,15 @@ def GetRecordsNear(db, lat, lon):
 
 	sortableResults.sort()
 	records = [tmp[1] for tmp in sortableResults]
+
+	for record in records:
+		source = record["source"]
+		if source == "ListedBuildings":
+			record["marker"] = "red"
+
+		if source == "ScheduledMonuments":
+			record["marker"] = "blue"
+
 	return records
 
 class FrontPage(object):
@@ -103,7 +112,7 @@ class Nearby(object):
 		except:
 			lon = None
 		records = GetRecordsNear(db, lat, lon)
-		
+
 		return app.RenderTemplate("nearby.html", records=records[:100], 
 			webinput=webinput, lat=lat, lon=lon, session = web.session)
 

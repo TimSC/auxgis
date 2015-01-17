@@ -23,8 +23,19 @@
 		maxZoom: 17
 	}).addTo(map);
 
+    var RedIcon = L.Icon.Default.extend({
+	options: {iconUrl: 'static/marker-icon-red.png'}
+	});
+	var redIcon = new RedIcon();
+
+    var BlueIcon = L.Icon.Default.extend({
+	options: {iconUrl: 'static/marker-icon.png'}
+	});
+	var blueIcon = new BlueIcon();
+
+
 {%for record in records%}
-	var marker{{record.id}} = L.marker([{{record.lat}}, {{record.lon}}]).addTo(map);
+	var marker{{record.id}} = L.marker([{{record.lat}}, {{record.lon}}], {icon: {{record["marker"]}}Icon}).addTo(map);
 {%endfor%}
 {%for record in records%}
 	marker{{record.id}}.bindPopup("<a href='record?record={{record.id}}'>{{record.name|e}}</a>")
