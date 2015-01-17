@@ -1,0 +1,19 @@
+<!doctype html> 
+<html>
+<head>
+<meta charset="utf-8"/> 
+<title>Recent changes</title>
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+</head>
+<body>
+{% include 'inc-account-links.html' %}
+
+<h2>Recent changes</h2>
+{% for change in changes %}
+{{change.modifyTime|datetime}} <a href="record?record={{change.recordId}}">{{recordDict[change.recordId].current.name|e}}</a> {{change.username|e}} {{change.edits|e}} <br/>
+{% endfor %}
+<a href="searchnear">Search new area</a></p>
+
+</body>
+</html>
+
