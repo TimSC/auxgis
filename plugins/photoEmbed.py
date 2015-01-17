@@ -199,7 +199,7 @@ class Plugin(object):
 
 			currentFlickrStrIds = map(str, currentFlickrIdsSortable)
 
-			formData={'flickr': ",".join(currentFlickrStrIds)}
+			formData={'flickr': ", ".join(currentFlickrStrIds)}
 			record.Update(db, time.time(), web.ctx.session.username, formData)
 
 	def PluginPage(self, action):
