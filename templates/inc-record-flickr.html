@@ -12,8 +12,8 @@
 Search: <input type="text" name="text" value="{{record.current.name|e}}"/><br/>
 Limit to area: <input type="checkbox" name="limitarea" checked/><br/>
 Search radius: <input type="text" name="radius" value="1"/>km<br/>
-<input type="hidden" name="lat" value="{{record.fixedData.lat}}"/>
-<input type="hidden" name="lon" value="{{record.fixedData.lon}}"/>
+<input type="hidden" name="lat" value="{{record.current.lat}}"/>
+<input type="hidden" name="lon" value="{{record.current.lon}}"/>
 <input type="hidden" name="record" value="{{webinput.record}}"/>
 <input type="submit" value="Search flickr"/>
 <input type="hidden" name="plugin" value="photo"/>
