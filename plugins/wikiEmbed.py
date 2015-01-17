@@ -114,7 +114,7 @@ class Plugin(object):
 		return {"wikis": wikis}
 
 	def ProcessWebPost(self, db, webinput, record):
-		if webinput["action"] == "Associate article with record":
+		if webinput["action"] == "associate" and webinput["plugin"] == "wikiEmbed":
 
 			formData={'wikipedia': webinput["article"]}
 			record.Update(db, time.time(), web.ctx.session.username, formData)

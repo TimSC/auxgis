@@ -23,7 +23,9 @@
 {%endfor%}
 </table>
 <input type="hidden" name="record" value="{{webinput.record}}"/>
-<p><input type="submit" name="action" value="Associate article with record"/></p>
+<input type="hidden" name="plugin" value="wikiEmbed"/>
+<input type="hidden" name="action" value="associate"/>
+<p><input type="submit" value="Associate article with record"/></p>
 
 </form>
 {%endif%}
@@ -36,6 +38,8 @@ Search radius: <input type="text" name="radius" value="{{webinput.radius}}"/>met
 <input type="hidden" name="lon" value="{{webinput.lon}}"/>
 <input type="hidden" name="record" value="{{webinput.record}}"/>
 <input type="submit" value="Search"/>
+<input type="hidden" name="plugin" value="wikiEmbed"/>
+<input type="hidden" name="action" value="search"/>
 </p>
 </form>
 
