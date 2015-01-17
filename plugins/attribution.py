@@ -1,6 +1,4 @@
-import conf, os, sqlitedict, time, json, web
-import flickrapi, urllib2
-		
+
 class Plugin(object):
 	def __init__(self):
 		pass
@@ -15,11 +13,8 @@ class Plugin(object):
 		return
 
 	def GetHeaderInclude(self):
-		return 'inc-record-map-header.html'
+		return
 
 	def GetBodyInclude(self):
-		return "inc-record-map.html"
+		return "inc-record-attribution.html"
 
-
-if __name__=="__main__":
-	pass

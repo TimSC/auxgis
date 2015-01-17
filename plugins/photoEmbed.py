@@ -121,7 +121,7 @@ class FlickrSearch(object):
 		for p in result["photos"]["photo"]:
 			self.photos.append(p)
 		
-class FlickrPlugin(object):
+class Plugin(object):
 	def __init__(self):
 		pass
 
@@ -259,6 +259,12 @@ class FlickrPlugin(object):
 			out["photos"] = photos
 
 			return ("searchflickr.html", out)
+
+	def GetHeaderInclude(self):
+		return
+
+	def GetBodyInclude(self):
+		return "inc-record-flickr.html"
 
 if __name__=="__main__":
 	print conf.flickrKey

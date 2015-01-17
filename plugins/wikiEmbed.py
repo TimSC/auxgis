@@ -91,7 +91,7 @@ class MediawikiSearch(object):
 		for result in geoResults:
 			self.results.append(result)
 
-class WikipediaPlugin(object):
+class Plugin(object):
 	def __init__(self):
 		pass
 
@@ -149,6 +149,12 @@ class WikipediaPlugin(object):
 			out["result"] = result
 
 			return ("searchwikipedia.html", out)
+
+	def GetHeaderInclude(self):
+		return
+
+	def GetBodyInclude(self):
+		return "inc-record-wikipedia.html"
 
 
 if __name__ == "__main__":

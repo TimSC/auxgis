@@ -1,6 +1,15 @@
 import web, app, math, json, time, copy, gpxutils, StringIO
-from plugins import photoEmbed, wikiEmbed, rawEdit
 import urllib2
+
+def GetPlugins(source):
+	
+	return ['rawEdit',
+			'photoEmbed', 
+			'wikiEmbed', 			
+			'mapEmbed',
+			'editLog',
+			'attribution',
+		]
 
 class DistLatLon(object):
 	#Based on http://stackoverflow.com/a/1185413/4288232
@@ -229,14 +238,17 @@ class RecordPage(object):
 
 		record = Record(db, rowId)
 
-		rawEditPlugin = rawEdit.RawEditPlugin()
-		rawEditPlugin.ProcessWebPost(db, webinput, record)
+		#Enumerate plugins
+		plugins = GetPlugins(record.fixedData["source"])
+		pluginInstances = []
+		for plugin in plugins:
+			baseModule = __import__("plugins."+plugin)
+			pluginModule = getattr(baseModule, plugin)
+			pluginInstance = pluginModule.Plugin()
+			pluginInstances.append(pluginInstance)
 
-		flickrPlugin = photoEmbed.FlickrPlugin()
-		flickrPlugin.ProcessWebPost(db, webinput, record)
-
-		wikiPlugin = wikiEmbed.WikipediaPlugin()
-		wikiPlugin.ProcessWebPost(db, webinput, record)
+		for pluginInstance in pluginInstances:
+			pluginInstance.ProcessWebPost(db, webinput, record)
 
 		return self.Render()
 
@@ -247,24 +259,34 @@ class RecordPage(object):
 
 		record = Record(db, rowId)
 		collectedPluginResults = {}
+		pluginHeaderIncs = []
+		pluginIncs = []
 
-		rawEditPlugin = rawEdit.RawEditPlugin()
-		pluginResults = rawEditPlugin.PrepareData(record)
-		collectedPluginResults.update(pluginResults)
+		#Enumerate plugins
+		plugins = GetPlugins(record.fixedData["source"])
+		pluginInstances = []
+		for plugin in plugins:
+			baseModule = __import__("plugins."+plugin)
+			pluginModule = getattr(baseModule, plugin)
+			pluginInstance = pluginModule.Plugin()
+			pluginInstances.append(pluginInstance)
 
-		flickrPlugin = photoEmbed.FlickrPlugin()
-		pluginResults = flickrPlugin.PrepareData(record)
-		collectedPluginResults.update(pluginResults)
+		#Call plugins to prepare data
+		for pluginInstance in pluginInstances:
+			pluginResults = pluginInstance.PrepareData(record)
+			collectedPluginResults.update(pluginResults)
 
-		wikiPlugin = wikiEmbed.WikipediaPlugin()
-		pluginResults = wikiPlugin.PrepareData(record)
-		collectedPluginResults.update(pluginResults)
+		#Get header includes from plugins
+		for pluginInstance in pluginInstances:
+			hdrInc = pluginInstance.GetHeaderInclude()
+			if hdrInc is not None:
+				pluginHeaderIncs.append(hdrInc)
 
-		pluginHeaderIncs = ['inc-record-map-header.html']
-		pluginIncs = ['inc-record-rawedit.html', 
-			'inc-record-flickr.html', 'inc-record-wikipedia.html', 
-			'inc-record-map.html', 'inc-record-editlog.html',
-			'inc-record-attribution.html']
+		#Get body includes from plugins
+		for pluginInstance in pluginInstances:
+			bdyInc = pluginInstance.GetBodyInclude()
+			if bdyInc is not None:
+				pluginIncs.append(bdyInc)
 
 		return app.RenderTemplate("record.html", record=record, 
 			webinput=webinput, pluginIncs = pluginIncs,
@@ -294,22 +316,33 @@ class SearchNear(object):
 
 class PluginPage(object):
 	def GET(self):
+		db = web.ctx.db
 		webinput = web.input()
-		plugin = webinput["plugin"]
+		pluginArg = webinput["plugin"]
 		action = webinput["action"]
-		
-		if plugin == "photo":
-			flickrPlugin = photoEmbed.FlickrPlugin()
-			template, params = flickrPlugin.PluginPage(action)
-			return app.RenderTemplate(template, webinput=webinput, session = web.ctx.session, **params)
+		rowId = int(webinput["record"])
 
-		if plugin == "wiki":
-			wikiPlugin = wikiEmbed.WikipediaPlugin()
-			template, params = wikiPlugin.PluginPage(action)
+		record = Record(db, rowId)
+
+		#Enumerate plugins
+		plugins = GetPlugins(record.fixedData["source"])
+		pluginInstances = {}
+		for plugin in plugins:
+			baseModule = __import__("plugins."+plugin)
+			pluginModule = getattr(baseModule, plugin)
+			pluginInstance = pluginModule.Plugin()
+			pluginInstances[plugin] = pluginInstance
+
+		#Check if specified plugin exists
+		if pluginArg in pluginInstances:
+			instance = pluginInstances[pluginArg]
+			response = instance.PluginPage(action)
+			if response is None: return
+
+			#Request page from plugin
+			template, params = response
 			return app.RenderTemplate(template, webinput=webinput, session = web.ctx.session, **params)
 
 	def POST(self):
-		pass
-
-
+		return GET(self)
 

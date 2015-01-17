@@ -1,7 +1,7 @@
 
 import time, web
 
-class RawEditPlugin(object):
+class Plugin(object):
 	def __init__(self):
 		pass
 
@@ -17,4 +17,10 @@ class RawEditPlugin(object):
 				formData[keyName] = webinput[key]
 			
 			record.Update(db, time.time(), web.ctx.session.username, formData)
+
+	def GetHeaderInclude(self):
+		return
+
+	def GetBodyInclude(self):
+		return "inc-record-rawedit.html"
 
