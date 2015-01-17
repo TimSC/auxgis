@@ -12,6 +12,10 @@ if __name__=="__main__":
 		c.execute('''DROP TABLE data;''')
 	except:
 		pass
+	try:
+		c.execute('''DROP TABLE recentchanges;''')
+	except:
+		pass
 
 	conn.commit()
 
