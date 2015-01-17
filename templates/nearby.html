@@ -44,7 +44,9 @@
 
 <table>
 {%for record in records%}
-<tr><td>{%if record.dist != None%}{{'%0.1f' % record.dist}}{%endif%}</td><td><a href="record?record={{record.id}}">{{record.name|e}}</a></td></tr>
+<tr><td>{%if record.dist != None%}{{'%0.1f' % record.dist}}{%endif%}</td><td><a href="record?record={{record.id}}">{{record.name|e}}</a></td>
+<td>{{record.source|e}}</td>
+</tr>
 {%endfor%}
 </table>
 
