@@ -1,5 +1,24 @@
-import urllib2, json, sqlitedict, time, os
+import urllib2, json, sqlitedict, time, os, web
 import mwparserfromhell
+from xml.sax.saxutils import escape, unescape
+
+def SplitTextByParagraph(text, targetNumChars):
+	textPar = text.split("\n")
+	cumul = 0
+	cumulLi = []
+	for par in textPar:
+		cumul += len(par)
+		cumulLi.append(cumul)
+
+	bestSc = None
+	best = []
+	for i, l in enumerate(cumulLi):
+		err = abs(targetNumChars - l)
+		if bestSc is None or err < bestSc:
+			best = "\n".join(textPar[:i+1])
+			bestSc = err
+
+	return best
 
 class MediawikiArticle(object):
 	def __init__(self, articleName, enableCache=True):
@@ -71,6 +90,65 @@ class MediawikiSearch(object):
 		geoResults = decodedResult["query"]["geosearch"]
 		for result in geoResults:
 			self.results.append(result)
+
+class WikipediaPlugin(object):
+	def __init__(self):
+		pass
+
+	def PrepareData(self, record):
+		#Process wikipedia link into embeded text
+		wikipediaArticle = record.current["wikipedia"]
+		wikis = []
+
+		if wikipediaArticle is not None and len(wikipediaArticle) > 0:
+			article = MediawikiArticle(wikipediaArticle)
+			wikiEntry = {}
+			textExtract = SplitTextByParagraph(article.text, 1000)
+			wikiEntry["text"] = escape(textExtract).replace("\n", "<br/>")
+			wikiEntry["url"] = u"https://en.wikipedia.org/wiki/{0}".format(urllib2.quote(wikipediaArticle))
+			wikiEntry["credit"] = "Wikipedia"
+			wikiEntry["article"] = wikipediaArticle
+
+			wikis.append(wikiEntry)
+
+		return {"wikis": wikis}
+
+	def ProcessWebPost(self, db, webinput, record):
+		if webinput["action"] == "Associate article with record":
+
+			formData={'wikipedia': webinput["article"]}
+			record.Update(db, time.time(), web.ctx.session.username, formData)
+
+class SearchWikipedia(object):
+	def GET(self):
+		db = web.ctx.db
+		webinput = web.input()
+
+		lat = 53.
+		lon = -1.2
+		if "lat" in webinput:
+			try:
+				lat = float(webinput["lat"])
+			except:
+				pass
+		if "lon" in webinput:
+			try:
+				lon = float(webinput["lon"])
+			except:
+				pass
+
+		searchResult = MediawikiSearch(lat, lon, webinput["radius"])
+		result = []
+		for r in searchResult.results:
+			r["url"] = u"https://en.wikipedia.org/wiki/{0}".format(urllib2.quote(r["title"]))
+			result.append(r)
+
+		out = {}
+		out["lat"] = lat
+		out["lon"] = lon
+		out["result"] = result
+
+		return ("searchwikipedia.html", out)
 
 
 if __name__ == "__main__":

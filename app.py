@@ -8,7 +8,7 @@
 
 import web, os, sys, datetime
 sys.path.append(os.path.dirname(__file__))
-import webpages, userpages, conf
+import webpages, userpages, conf, plugins
 from jinja2 import Environment,FileSystemLoader
 
 urls = (
@@ -20,8 +20,7 @@ urls = (
 	'/logout', 'userpages.LogOut',
 	'/register', 'userpages.Register',
 	'/searchnear', 'webpages.SearchNear',
-	'/searchflickr', 'webpages.SearchFlickr',
-	'/searchwikipedia', 'webpages.SearchWikipedia',
+	'/plugin', 'webpages.PluginPage',
 	)
 
 def Jinja2DateTime(value):

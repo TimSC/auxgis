@@ -1,6 +1,5 @@
 import web, app, math, json, time, copy, gpxutils, StringIO
-from plugins import photoEmbed, wikiEmbed
-from xml.sax.saxutils import escape, unescape
+from plugins import photoEmbed, wikiEmbed, rawEdit
 import urllib2
 
 class DistLatLon(object):
@@ -192,151 +191,6 @@ class Record(object):
 		changedFieldsJosn = json.dumps(self.edits)
 		db.update("data", where="id=$id", vars=vars2, edits=changedFieldsJosn)
 
-def SplitTextByParagraph(text, targetNumChars):
-	textPar = text.split("\n")
-	cumul = 0
-	cumulLi = []
-	for par in textPar:
-		cumul += len(par)
-		cumulLi.append(cumul)
-
-	bestSc = None
-	best = []
-	for i, l in enumerate(cumulLi):
-		err = abs(targetNumChars - l)
-		if bestSc is None or err < bestSc:
-			best = "\n".join(textPar[:i+1])
-			bestSc = err
-
-	return best
-
-class FlickrPlugin(object):
-	def __init__(self):
-		pass
-
-	def PrepareData(self, record):
-
-		#Get stored flickr IDs
-		flickrIds = set(record.current["flickr"].split(","))
-		photos = []
-		flickrHandle = photoEmbed.GetFlickrHandle()
-
-		#Search using flickr API for tags that match this ID
-		tag = u"england_listed_building:entry={0}".format(record.current["ListEntry"])
-		flickrSearch = photoEmbed.FlickrSearch(flickrHandle, tag)
-		for p in flickrSearch.photos[:25]: #Limit to 25 photos
-			flickrIds.add(p["id"])
-		
-		#Process flickr IDs into a gallery
-		for flickrPhotoId in flickrIds:
-			idStrip = flickrPhotoId.strip()
-
-			if not unicode(idStrip).isnumeric():
-				continue
-
-			if 1:
-			#try:
-				idClean = int(idStrip)
-				photoInfo = photoEmbed.FlickrPhotoInfo(flickrHandle, idClean)
-				if int(photoInfo.usageCanShare) != 1: continue
-				photoSizes = photoEmbed.FlickrPhotoSizes(flickrHandle, idClean)
-			#except Exception as err:
-				#raise err			
-			#	continue
-
-			userPth = photoInfo.ownerUserName
-			if photoInfo.ownerPathAlias is not None:
-				userPth = photoInfo.ownerPathAlias
-
-			displayName = photoInfo.ownerUserName
-			if photoInfo.ownerRealName is not None and len(photoInfo.ownerRealName) > 0:
-				displayName = photoInfo.ownerRealName
-
-			photos.append({'link':u'https://www.flickr.com/photos/{0}/{1}'.format(urllib2.quote(userPth), idClean),
-				'text':u'{0} by {1}, on Flickr'.format(photoInfo.title, displayName),
-				'url': photoSizes.photoByWidth[150]["source"],
-				'alt':photoInfo.title,
-				'height': 150,
-				'width': 150
-				})
-
-		return {'photos': photos}
-
-	def ProcessWebPost(self, db, webinput, record):
-		
-		if webinput["action"] == "Associate with record":
-
-			photoIds = []
-			for key in webinput:
-				prefix = key[:16]
-				if prefix != "checkbox-flickr-": continue
-				photoId = int(key[16:])
-				photoIds.append(photoId)
-
-			splitFlickrIds = record.current["flickr"].split(",")
-			currentFlickrIds = set()
-			for photoId in splitFlickrIds:
-				ps = unicode(photoId.strip())
-				if not ps.isnumeric(): continue
-				p = int(ps)
-				currentFlickrIds.add(p)
-
-			for photoId in photoIds:
-				currentFlickrIds.add(photoId)
-
-			currentFlickrIdsSortable = list(currentFlickrIds)
-			currentFlickrIdsSortable.sort()
-
-			currentFlickrStrIds = map(str, currentFlickrIdsSortable)
-
-			formData={'flickr': ",".join(currentFlickrStrIds)}
-			record.Update(db, time.time(), web.ctx.session.username, formData)
-
-class WikipediaPlugin(object):
-	def __init__(self):
-		pass
-
-	def PrepareData(self, record):
-		#Process wikipedia link into embeded text
-		wikipediaArticle = record.current["wikipedia"]
-		wikis = []
-
-		if wikipediaArticle is not None and len(wikipediaArticle) > 0:
-			article = wikiEmbed.MediawikiArticle(wikipediaArticle)
-			wikiEntry = {}
-			textExtract = SplitTextByParagraph(article.text, 1000)
-			wikiEntry["text"] = escape(textExtract).replace("\n", "<br/>")
-			wikiEntry["url"] = u"https://en.wikipedia.org/wiki/{0}".format(urllib2.quote(wikipediaArticle))
-			wikiEntry["credit"] = "Wikipedia"
-			wikiEntry["article"] = wikipediaArticle
-
-			wikis.append(wikiEntry)
-
-		return {"wikis": wikis}
-
-	def ProcessWebPost(self, db, webinput, record):
-		if webinput["action"] == "Associate article with record":
-
-			formData={'wikipedia': webinput["article"]}
-			record.Update(db, time.time(), web.ctx.session.username, formData)
-
-class RawEditPlugin(object):
-	def __init__(self):
-		pass
-
-	def PrepareData(self, record):
-		return {}
-
-	def ProcessWebPost(self, db, webinput, record):
-		if webinput["action"] == "Update record":
-			formData = {}		
-			for key in webinput:
-				if key[:6] != "field_": continue
-				keyName = key[6:]
-				formData[keyName] = webinput[key]
-			
-			record.Update(db, time.time(), web.ctx.session.username, formData)
-
 class RecordPage(object):
 	def GET(self):
 		return self.Render()
@@ -351,13 +205,13 @@ class RecordPage(object):
 
 		record = Record(db, rowId)
 
-		rawEditPlugin = RawEditPlugin()
+		rawEditPlugin = rawEdit.RawEditPlugin()
 		rawEditPlugin.ProcessWebPost(db, webinput, record)
 
-		flickrPlugin = FlickrPlugin()
+		flickrPlugin = photoEmbed.FlickrPlugin()
 		flickrPlugin.ProcessWebPost(db, webinput, record)
 
-		wikiPlugin = WikipediaPlugin()
+		wikiPlugin = wikiEmbed.WikipediaPlugin()
 		wikiPlugin.ProcessWebPost(db, webinput, record)
 
 		return self.Render()
@@ -370,15 +224,15 @@ class RecordPage(object):
 		record = Record(db, rowId)
 		collectedPluginResults = {}
 
-		rawEditPlugin = RawEditPlugin()
+		rawEditPlugin = rawEdit.RawEditPlugin()
 		pluginResults = rawEditPlugin.PrepareData(record)
 		collectedPluginResults.update(pluginResults)
 
-		flickrPlugin = FlickrPlugin()
+		flickrPlugin = photoEmbed.FlickrPlugin()
 		pluginResults = flickrPlugin.PrepareData(record)
 		collectedPluginResults.update(pluginResults)
 
-		wikiPlugin = WikipediaPlugin()
+		wikiPlugin = wikiEmbed.WikipediaPlugin()
 		pluginResults = wikiPlugin.PrepareData(record)
 		collectedPluginResults.update(pluginResults)
 
@@ -409,88 +263,24 @@ class SearchNear(object):
 
 		return app.RenderTemplate("searchnear.html", webinput=webinput, lat=lat, lon=lon, session = web.ctx.session)
 
-class SearchFlickr(object):
+class PluginPage(object):
 	def GET(self):
-		db = web.ctx.db
 		webinput = web.input()
+		plugin = webinput["plugin"]
+		action = webinput["action"]
+		
+		if plugin == "photo":
+			flickrPlugin = photoEmbed.SearchFlickr()
+			template, params = flickrPlugin.GET()
+			return app.RenderTemplate(template, webinput=webinput, session = web.ctx.session, **params)
 
-		lat = 53.
-		lon = -1.2
-		if "lat" in webinput:
-			try:
-				lat = float(webinput["lat"])
-			except:
-				pass
-		if "lon" in webinput:
-			try:
-				lon = float(webinput["lon"])
-			except:
-				pass
+		if plugin == "wiki":
+			wikiPlugin = wikiEmbed.SearchWikipedia()
+			template, params = wikiPlugin.GET()
+			return app.RenderTemplate(template, webinput=webinput, session = web.ctx.session, **params)
 
-		if "limitarea" not in webinput or webinput["limitarea"] != "on":
-			lat = None
-			lon = None
-			radius = None
-
-		flickrHandle = photoEmbed.GetFlickrHandle()
-		photoSearch = photoEmbed.FlickrSearch(flickrHandle, text=webinput["text"], lat=lat, lon=lon, radius=webinput["radius"])
-
-		photos = []
-		for photo in photoSearch.photos:
-			photoId = int(photo["id"])
-
-			photoInfo = photoEmbed.FlickrPhotoInfo(flickrHandle, photoId)
-			if int(photoInfo.usageCanShare) != 1: continue
-			photoSizes = photoEmbed.FlickrPhotoSizes(flickrHandle, photoId)
-
-			userPth = photoInfo.ownerUserName
-			if photoInfo.ownerPathAlias is not None:
-				userPth = photoInfo.ownerPathAlias
-
-			displayName = photoInfo.ownerUserName
-			if photoInfo.ownerRealName is not None and len(photoInfo.ownerRealName) > 0:
-				displayName = photoInfo.ownerRealName
-
-			photos.append({'link':u'https://www.flickr.com/photos/{0}/{1}'.format(urllib2.quote(userPth), photoId),
-				'text':u'{0} by {1}, on Flickr'.format(photoInfo.title, displayName),
-				'url': photoSizes.photoByWidth[150]["source"],
-				'alt': photoInfo.title,
-				'height': 150,
-				'width': 150,
-				'description': photoInfo.description,
-				'id': photoId,
-				})
-
-			if len(photos) >= 25: break
-
-		return app.RenderTemplate("searchflickr.html", webinput=webinput, lat=lat, lon=lon, session = web.ctx.session, photos=photos)
+	def POST(self):
+		pass
 
 
-class SearchWikipedia(object):
-	def GET(self):
-		db = web.ctx.db
-		webinput = web.input()
-
-		lat = 53.
-		lon = -1.2
-		if "lat" in webinput:
-			try:
-				lat = float(webinput["lat"])
-			except:
-				pass
-		if "lon" in webinput:
-			try:
-				lon = float(webinput["lon"])
-			except:
-				pass
-
-		photos = []
-
-		searchResult = wikiEmbed.MediawikiSearch(lat, lon, webinput["radius"])
-		result = []
-		for r in searchResult.results:
-			r["url"] = u"https://en.wikipedia.org/wiki/{0}".format(urllib2.quote(r["title"]))
-			result.append(r)
-
-		return app.RenderTemplate("searchwikipedia.html", webinput=webinput, lat=lat, lon=lon, session = web.ctx.session, photos=photos, result=result)
 

@@ -1,5 +1,5 @@
-import conf, os, sqlitedict, time, json
-import flickrapi
+import conf, os, sqlitedict, time, json, web
+import flickrapi, urllib2
 
 def GetFlickrHandle():
 	flickr = flickrapi.FlickrAPI(conf.flickrKey, conf.flickrSecret)
@@ -15,6 +15,7 @@ class FlickrPhotoInfo(object):
 		self.ownerUserName = None
 		self.ownerPathAlias = None
 		self.usageCanShare = None
+		self.ownerNsid = None
 
 		if enableCache:
 			curdir = os.path.dirname(__file__)
@@ -49,7 +50,9 @@ class FlickrPhotoInfo(object):
 		self.ownerRealName = photo["owner"]["realname"]
 		self.ownerUserName = photo["owner"]["username"]
 		self.ownerPathAlias = photo["owner"]["path_alias"]
+		self.ownerNsid = photo["owner"]["nsid"]
 		self.usageCanShare = photo["usage"]["canshare"]
+		self._raw = photo
 
 	def _RetrieveViaWeb(self, photo_id):
 		resultJson = self.flickr.photos.getInfo(photo_id=photo_id, format='json')
@@ -118,6 +121,145 @@ class FlickrSearch(object):
 		for p in result["photos"]["photo"]:
 			self.photos.append(p)
 		
+class FlickrPlugin(object):
+	def __init__(self):
+		pass
+
+	def PrepareData(self, record):
+
+		#Get stored flickr IDs
+		flickrIds = set(record.current["flickr"].split(","))
+		photos = []
+		flickrHandle = GetFlickrHandle()
+
+		#Search using flickr API for tags that match this ID
+		tag = u"england_listed_building:entry={0}".format(record.current["ListEntry"])
+		flickrSearch = FlickrSearch(flickrHandle, tag)
+		for p in flickrSearch.photos[:25]: #Limit to 25 photos
+			flickrIds.add(p["id"])
+		
+		#Process flickr IDs into a gallery
+		for flickrPhotoId in flickrIds:
+			idStrip = flickrPhotoId.strip()
+
+			if not unicode(idStrip).isnumeric():
+				continue
+
+			if 1:
+			#try:
+				idClean = int(idStrip)
+				photoInfo = FlickrPhotoInfo(flickrHandle, idClean)
+				if int(photoInfo.usageCanShare) != 1: continue
+				photoSizes = FlickrPhotoSizes(flickrHandle, idClean)
+			#except Exception as err:
+				#raise err			
+			#	continue
+
+			userPth = photoInfo.ownerNsid
+
+			displayName = photoInfo.ownerUserName
+			if photoInfo.ownerRealName is not None and len(photoInfo.ownerRealName) > 0:
+				displayName = photoInfo.ownerRealName
+
+			photos.append({'link':u'https://www.flickr.com/photos/{0}/{1}'.format(urllib2.quote(userPth), idClean),
+				'text':u'{0} by {1}, on Flickr'.format(photoInfo.title, displayName),
+				'url': photoSizes.photoByWidth[150]["source"],
+				'alt':photoInfo.title,
+				'height': 150,
+				'width': 150
+				})
+
+		return {'photos': photos}
+
+	def ProcessWebPost(self, db, webinput, record):
+		
+		if webinput["action"] == "Associate with record":
+
+			photoIds = []
+			for key in webinput:
+				prefix = key[:16]
+				if prefix != "checkbox-flickr-": continue
+				photoId = int(key[16:])
+				photoIds.append(photoId)
+
+			splitFlickrIds = record.current["flickr"].split(",")
+			currentFlickrIds = set()
+			for photoId in splitFlickrIds:
+				ps = unicode(photoId.strip())
+				if not ps.isnumeric(): continue
+				p = int(ps)
+				currentFlickrIds.add(p)
+
+			for photoId in photoIds:
+				currentFlickrIds.add(photoId)
+
+			currentFlickrIdsSortable = list(currentFlickrIds)
+			currentFlickrIdsSortable.sort()
+
+			currentFlickrStrIds = map(str, currentFlickrIdsSortable)
+
+			formData={'flickr': ",".join(currentFlickrStrIds)}
+			record.Update(db, time.time(), web.ctx.session.username, formData)
+
+class SearchFlickr(object):
+	def GET(self):
+		db = web.ctx.db
+		webinput = web.input()
+
+		lat = 53.
+		lon = -1.2
+		if "lat" in webinput:
+			try:
+				lat = float(webinput["lat"])
+			except:
+				pass
+		if "lon" in webinput:
+			try:
+				lon = float(webinput["lon"])
+			except:
+				pass
+
+		if "limitarea" not in webinput or webinput["limitarea"] != "on":
+			lat = None
+			lon = None
+			radius = None
+
+		flickrHandle = GetFlickrHandle()
+		photoSearch = FlickrSearch(flickrHandle, text=webinput["text"], lat=lat, lon=lon, radius=webinput["radius"])
+
+		photos = []
+		for photo in photoSearch.photos:
+			photoId = int(photo["id"])
+
+			photoInfo = FlickrPhotoInfo(flickrHandle, photoId)
+			if int(photoInfo.usageCanShare) != 1: continue
+			photoSizes = FlickrPhotoSizes(flickrHandle, photoId)
+
+			userPth = photoInfo.ownerNsid
+
+			displayName = photoInfo.ownerUserName
+			if photoInfo.ownerRealName is not None and len(photoInfo.ownerRealName) > 0:
+				displayName = photoInfo.ownerRealName
+
+			photos.append({'link':u'https://www.flickr.com/photos/{0}/{1}'.format(urllib2.quote(userPth), photoId),
+				'text':u'{0} by {1}, on Flickr'.format(photoInfo.title, displayName),
+				'url': photoSizes.photoByWidth[150]["source"],
+				'alt': photoInfo.title,
+				'height': 150,
+				'width': 150,
+				'description': photoInfo.description,
+				'id': photoId,
+				})
+
+			if len(photos) >= 25: break
+
+		out = {}
+		out["lat"] = lat
+		out["lon"] = lon
+		out["photos"] = photos
+
+		return ("searchflickr.html", out)
+
 if __name__=="__main__":
 	print conf.flickrKey
 
