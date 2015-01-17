@@ -23,18 +23,6 @@
 {% include incPage %}
 {% endfor %}
 
-
-
-{%if record.fixedData.source == "ListedBuildings"%}
-<p><a href="http://list.english-heritage.org.uk/resultsingle.aspx?uid={{record.current.ListEntry}}">English Heritage record</a></p>
-
-<p>© English Heritage 2013. Contains Ordnance Survey data © Crown copyright
-and database right 2013.</p>
-<p>The English Heritage GIS Data contained in this material was obtained on
-2013. The most publicly available up to date English Heritage GIS Data can
-be obtained from <a href="http://www.english-heritage.org.uk">http://www.english-heritage.org.uk</a>.</p>
-{%endif%}
-
 <p><a href="nearby?lat={{record.fixedData.lat}}&lon={{record.fixedData.lon}}">Nearby records</a></p>
 
 </body>

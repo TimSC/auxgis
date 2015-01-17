@@ -263,7 +263,8 @@ class RecordPage(object):
 		pluginHeaderIncs = ['inc-record-map-header.html']
 		pluginIncs = ['inc-record-rawedit.html', 
 			'inc-record-flickr.html', 'inc-record-wikipedia.html', 
-			'inc-record-map.html', 'inc-record-editlog.html']
+			'inc-record-map.html', 'inc-record-editlog.html',
+			'inc-record-attribution.html']
 
 		return app.RenderTemplate("record.html", record=record, 
 			webinput=webinput, pluginIncs = pluginIncs,
