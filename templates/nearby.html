@@ -46,7 +46,11 @@
 {%for record in records%}
 
 <tr><td>{%if recordsMeta[record.fixedData.id].dist != None%}{{'%0.1f' % recordsMeta[record.fixedData.id].dist}}{%endif%}</td><td><a href="record?record={{record.fixedData.id}}">{{record.current.name|e}}</a></td>
-<td>{{record.fixedData.source|e}}</td>
+<td>{{record.fixedData.source|e}}
+{%if record.fixedData.source == "ListedBuildings"%}
+{{record.current.Grade}}
+{%endif%}
+</td>
 <td>
 {{recordsMeta[record.fixedData.id].pluginStr}}
 </td>
