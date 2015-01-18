@@ -1,4 +1,5 @@
-{%if session.username == None %}
+
+{%if 'username' not in session or session.username == None %}
 <p><a href="login"/>Log in</a> <a href="register"/>Register</a></p>
 {%else%}
 <p>{{session.username|e}} <a href="logout"/>Log out</a></p>

@@ -172,7 +172,7 @@ class Plugin(object):
 		return {'photos': photos}
 
 	def ProcessWebPost(self, db, webinput, record):
-		
+
 		if webinput["action"] == "associate" and webinput["plugin"] == "photoEmbed":
 
 

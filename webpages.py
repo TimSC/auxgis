@@ -114,7 +114,7 @@ class Nearby(object):
 		records = GetRecordsNear(db, lat, lon)
 
 		return app.RenderTemplate("nearby.html", records=records[:100], 
-			webinput=webinput, lat=lat, lon=lon, session = web.session)
+			webinput=webinput, lat=lat, lon=lon, session = web.ctx.session)
 
 class NearbyGpx(object):
 	def GET(self):

@@ -13,8 +13,7 @@
 {%if actionMessage != None %}
 <p>{{actionMessage}}</p>
 {%endif%}
-
-{%if session.username == None %}
+{%if 'username' not in session or session.username == None %}
 <form method="POST">
 <table>
 <tr><td>Username:</td><td><input type="text" name="username"/></td></tr>
