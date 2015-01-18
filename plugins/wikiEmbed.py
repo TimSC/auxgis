@@ -69,9 +69,12 @@ class MediawikiArticle(object):
 		decodedResult = json.loads(result)	
 
 		pageIds = decodedResult["query"]["pages"].keys()
+		firstPageId = int(pageIds[0])
 
-		if pageIds > 0:
-			pageData = decodedResult["query"]["pages"][pageIds[0]]
+		if firstPageId < 0:
+			raise RuntimeError("Wiki page not found")
+		else:
+			pageData = decodedResult["query"]["pages"][str(firstPageId)]
 			self.wikicode = pageData["revisions"][0]["*"]
 			wp = mwparserfromhell.parse(self.wikicode)
 			self.text = wp.strip_code()
@@ -101,7 +104,12 @@ class Plugin(object):
 		wikis = []
 
 		if wikipediaArticle is not None and len(wikipediaArticle) > 0:
-			article = MediawikiArticle(wikipediaArticle)
+			try:
+				article = MediawikiArticle(wikipediaArticle)
+			except RuntimeError:
+				#Page not found
+				return {"wikis": wikis}
+
 			wikiEntry = {}
 			textExtract = SplitTextByParagraph(article.text, 1000)
 			wikiEntry["text"] = escape(textExtract).replace("\n", "<br/>")
