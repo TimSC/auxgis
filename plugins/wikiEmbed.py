@@ -164,6 +164,9 @@ class Plugin(object):
 	def GetBodyInclude(self):
 		return "inc-record-wikipedia.html"
 
+	def GetRecordSummary(self, record, recMeta):
+		if len(record.current["wikipedia"]) > 0:
+			recMeta["pluginData"].append("wiki!")
 
 if __name__ == "__main__":
 	if 0:

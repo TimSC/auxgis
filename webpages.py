@@ -1,7 +1,7 @@
 import web, app, math, json, time, copy, gpxutils, StringIO
 import urllib2
 
-def GetPlugins(source):
+def GetPlugins(source = None):
 	
 	return ['rawEdit',
 			'photoEmbed', 
@@ -63,34 +63,42 @@ def GetRecordsNear(db, lat, lon):
 	else:
 		calcDist = None
 
+	recordMeta = {}
 	for record in results:
 		rowId = record["id"]
 		
-		vars2 = {"id": rowId}
-		dataResults = db.select("data", where="id=$id", vars= vars2, limit = 100)
-		dataResults = list(dataResults)
-		if len(dataResults) == 0: continue
-		record = dict(dataResults[0])
+		#vars2 = {"id": rowId}
+		#dataResults = db.select("data", where="id=$id", vars= vars2, limit = 100)
+		#dataResults = list(dataResults)
+		#if len(dataResults) == 0: continue
+		#record = dict(dataResults[0])
+
+		record = Record(db, rowId)
+
 		if calcDist is not None:
-			dist = calcDist.Dist(record["lat"], record["lon"])
+			dist = calcDist.Dist(record.current["lat"], record.current["lon"])
 		else:
 			dist = None
 
-		record["dist"] = dist
+		recordMeta[rowId] = {}
+		recordMeta[rowId]["dist"] = dist
 		sortableResults.append((dist, record))
 
 	sortableResults.sort()
 	records = [tmp[1] for tmp in sortableResults]
 
 	for record in records:
-		source = record["source"]
+		source = record.fixedData["source"]
+		rowId = record.fixedData["id"]
+		recordMeta[rowId]["marker"] = "red"
+
 		if source == "ListedBuildings":
-			record["marker"] = "red"
+			recordMeta[rowId]["marker"] = "red"
 
 		if source == "ScheduledMonuments":
-			record["marker"] = "blue"
+			recordMeta[rowId]["marker"] = "blue"
 
-	return records
+	return records, recordMeta
 
 class FrontPage(object):
 	def GET(self):
@@ -111,9 +119,36 @@ class Nearby(object):
 			lon = float(webinput["lon"])
 		except:
 			lon = None
-		records = GetRecordsNear(db, lat, lon)
+		records, recordsMeta = GetRecordsNear(db, lat, lon)
 
-		return app.RenderTemplate("nearby.html", records=records[:100], 
+		#Only consider a limited number of records
+		records=records[:100]
+
+		#Enumerate plugins
+		plugins = GetPlugins()
+		pluginInstances = []
+		for plugin in plugins:
+			baseModule = __import__("plugins."+plugin)
+			pluginModule = getattr(baseModule, plugin)
+			pluginInstance = pluginModule.Plugin()
+			pluginInstances.append(pluginInstance)
+
+		#Allow plugins to add extra info
+		for record in records:
+			rowId = record.fixedData["id"]
+			recMeta = recordsMeta[rowId]
+			recMeta["pluginData"] = []
+			for instance in pluginInstances:
+				instance.GetRecordSummary(record, recMeta)
+
+		#Collect plugin data into a string
+		for record in records:
+			rowId = record.fixedData["id"]
+			recMeta = recordsMeta[rowId]
+			recMeta["pluginStr"] = " ".join(recMeta["pluginData"])
+
+		return app.RenderTemplate("nearby.html", records=records, 
+			recordsMeta = recordsMeta,
 			webinput=webinput, lat=lat, lon=lon, session = web.ctx.session)
 
 class NearbyGpx(object):
@@ -131,15 +166,15 @@ class NearbyGpx(object):
 			lon = float(webinput["lon"])
 		except:
 			lon = None
-		records = GetRecordsNear(db, lat, lon)
+		records, recordsMeta = GetRecordsNear(db, lat, lon)
 
 		vowels = ('a', 'e', 'i', 'o', 'u')		
 
 
 		for record in records[:100]:
-			devwl = ''.join([l for l in record["name"] if l not in vowels]);
+			devwl = ''.join([l for l in record.current["name"] if l not in vowels]);
 
-			gw.Waypoint(record["lat"], record["lon"], devwl)
+			gw.Waypoint(record.current["lat"], record.current["lon"], devwl)
 
 		del gw
 

@@ -267,6 +267,11 @@ class Plugin(object):
 	def GetBodyInclude(self):
 		return "inc-record-flickr.html"
 
+	def GetRecordSummary(self, record, recMeta):
+		#Get stored flickr IDs
+		if len(record.current["flickr"]) > 0:
+			recMeta["pluginData"].append("photos!")
+
 if __name__=="__main__":
 	print conf.flickrKey
 

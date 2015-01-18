@@ -20,6 +20,9 @@ class Plugin(object):
 	def GetBodyInclude(self):
 		return "inc-record-map.html"
 
+	def GetRecordSummary(self, record, recMeta):
+		pass
+
 
 if __name__=="__main__":
 	pass

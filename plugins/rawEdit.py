@@ -24,3 +24,5 @@ class Plugin(object):
 	def GetBodyInclude(self):
 		return "inc-record-rawedit.html"
 
+	def GetRecordSummary(self, record, recMeta):
+		pass

@@ -18,3 +18,6 @@ class Plugin(object):
 	def GetBodyInclude(self):
 		return "inc-record-attribution.html"
 
+	def GetRecordSummary(self, record, recMeta):
+		pass
+

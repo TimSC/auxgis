@@ -35,17 +35,21 @@
 
 
 {%for record in records%}
-	var marker{{record.id}} = L.marker([{{record.lat}}, {{record.lon}}], {icon: {{record["marker"]}}Icon}).addTo(map);
+	var marker{{record.fixedData.id}} = L.marker([{{record.current.lat}}, {{record.current.lon}}], {icon: {{recordsMeta[record.fixedData.id]["marker"]}}Icon}).addTo(map);
 {%endfor%}
 {%for record in records%}
-	marker{{record.id}}.bindPopup("<a href='record?record={{record.id}}'>{{record.name|e}}</a>")
+	marker{{record.fixedData.id}}.bindPopup("<a href='record?record={{record.fixedData.id}}'>{{record.current.name|e}}</a>")
 {%endfor%}
 </script>
 
 <table>
 {%for record in records%}
-<tr><td>{%if record.dist != None%}{{'%0.1f' % record.dist}}{%endif%}</td><td><a href="record?record={{record.id}}">{{record.name|e}}</a></td>
-<td>{{record.source|e}}</td>
+
+<tr><td>{%if recordsMeta[record.fixedData.id].dist != None%}{{'%0.1f' % recordsMeta[record.fixedData.id].dist}}{%endif%}</td><td><a href="record?record={{record.fixedData.id}}">{{record.current.name|e}}</a></td>
+<td>{{record.fixedData.source|e}}</td>
+<td>
+{{recordsMeta[record.fixedData.id].pluginStr}}
+</td>
 </tr>
 {%endfor%}
 </table>
