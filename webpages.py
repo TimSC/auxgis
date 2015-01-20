@@ -428,6 +428,64 @@ class RecentChanges(object):
 			changes = changes, recordDict = recordDict)
 
 
+class LongNames(object):
+	def GET(self):
+		return self.Render()
+
+	def Render(self, actionTxt = None):
+		db = web.ctx.db
+		webinput = web.input()
+
+		offset = 0
+		if "offset" in webinput:
+			offset = webinput["offset"]
+
+		longNameRecords = db.select("data", order="length(name) DESC", limit = 100, offset = offset)
+		records = []
+		for row in longNameRecords:
+			rowId = row["id"]
+			records.append(Record(db, rowId))
+			
+		return app.RenderTemplate("longnames.html", webinput=webinput, session = web.ctx.session, 
+			records = records)
+
+	def POST(self):
+		db = web.ctx.db
+		webinput = web.input()
+		if web.ctx.session.get("username", None) == None:
+			return self.Render("Log in first")
+
+		#Extract fields from form
+		nameData = {}
+		descriptionData = {}
+		recordIds = set()
+		for field in webinput:
+			fieldSp = field.split(":")
+			if len(fieldSp) != 2: continue
+			rowId = int(fieldSp[1])
+			if fieldSp[0] == "name":
+				nameData[rowId] = webinput[field]
+			if fieldSp[0] == "description":
+				descriptionData[rowId] = webinput[field]
+
+			recordIds.add(rowId)
+		
+		#Get original records
+		records = {}
+		recentChangeTracker = RecentChangeTracker(db)
+		for rid in recordIds:
+			records[rid] = Record(db, rid, recentChangeTracker)
+
+		for rid in recordIds:
+			newValues = {}			
+			if rid in nameData: newValues["name"] = nameData[rid]
+			if rid in descriptionData: newValues["description"] = descriptionData[rid]
+
+			records[rid].Update(db, time.time(), web.ctx.session.username, newValues)
+
+		
+		
+		return self.Render()
 
 
 

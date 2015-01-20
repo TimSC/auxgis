@@ -1,0 +1,31 @@
+<!doctype html> 
+<html>
+<head>
+<meta charset="utf-8"/> 
+<title>Long names</title>
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+</head>
+<body>
+{% include 'inc-account-links.html' %}
+
+<h2>Long names</h2>
+
+<form method="POST">
+<table>
+{% for record in records %}
+<tr><td><a href="record?record={{record.fixedData.id|e}}">{{record.fixedData.id|e}}</a></td>
+<td><input type="text" size="60" name="name:{{record.fixedData.id|e}}" value="{{record.current.name|e}}"/></td>
+<td><input type="text" size="60" name="description:{{record.fixedData.id|e}}" value="{{record.current.description|e}}"/></td>
+</tr>
+{% endfor %}
+</table>
+
+
+<input type="submit" value="Update">
+</form>
+
+<a href="searchnear">Search new area</a></p>
+
+</body>
+</html>
+
