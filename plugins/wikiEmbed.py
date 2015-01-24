@@ -1,5 +1,5 @@
 import urllib2, json, sqlitedict, time, os, web
-import mwparserfromhell, webpages
+import mwparserfromhell
 from xml.sax.saxutils import escape, unescape
 
 def SplitTextByParagraph(text, targetNumChars):
@@ -82,12 +82,15 @@ class MediawikiArticle(object):
 class MediawikiSearch(object):
 	def __init__(self, lat, lon, radius):
 
-		url = u"https://en.wikipedia.org/w/api.php?format=json&action=query&list=geosearch&gsradius={2}&gscoord={0}|{1}&continue=".format(lat,lon,radius)
-		#print url
-		ha = urllib2.urlopen(url)
-		result = ha.read()
+		url = [u"https://en.wikipedia.org/w/api.php?format=json&action=query&list=geosearch&gsradius={2}&gscoord={0}|{1}&continue&gslimit=5000".format(lat,lon,radius)]
+		url.append(u"&continue")
+
+		#print u"".join(url)
+		ha = urllib2.urlopen(u"".join(url))
+		jsonDat = ha.read()
 		#print result
-		decodedResult = json.loads(result)	
+		decodedResult = json.loads(jsonDat)	
+		#print decodedResult
 
 		if "error" in decodedResult:
 			raise RuntimeError(decodedResult["error"]["info"])
@@ -96,6 +99,7 @@ class MediawikiSearch(object):
 		geoResults = decodedResult["query"]["geosearch"]
 		for result in geoResults:
 			self.results.append(result)
+		
 
 class Plugin(object):
 	def __init__(self):
@@ -229,6 +233,7 @@ class Plugin(object):
 					#assert 0
 
 				r["nearby"] = nearbyRecords[:10]
+				r["meta"] = nearbyMeta
 
 			out = {}
 			out["lat"] = lat
@@ -252,7 +257,7 @@ if __name__ == "__main__":
 		wiki = MediawikiArticle("Stoughton Barracks")
 		print wiki.text
 	if 1:
-		wiki = MediawikiSearch(37.786971, -122.399677, 10000)
+		wiki = MediawikiSearch(53., -1.2, 10000)
 		for result in wiki.results:
 			print result
 

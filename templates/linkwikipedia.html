@@ -21,7 +21,10 @@
 <td style="background-color:#beffb1;"><input name="opt-{{nearby.fixedData.id|e}}-{{record.title|e}}" type="radio" value="set" {%if nearby.selected==1%} checked{%endif%} /></td>
 <td style="background-color:#ffb1b1;"><input name="opt-{{nearby.fixedData.id|e}}-{{record.title|e}}" type="radio" value="unset" {%if nearby.selected==0%} checked{%endif%}/></td>
 <td>
-<a href="record?record={{nearby.fixedData.id|e}}">{{nearby.current.name|e}}</a>
+<a href="record?record={{nearby.fixedData.id|e}}">{{nearby.current.name|e}}</a> 
+{%if record.meta[nearby.fixedData.id].dist != None%}
+{{'%0.1f' % record.meta[nearby.fixedData.id].dist}} km
+{%endif%}
 </td>
 </tr>
 {%endfor%}
