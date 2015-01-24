@@ -291,16 +291,22 @@ class RecordPage(object):
 	def POST(self):
 		db = web.ctx.db
 		webinput = web.input()
-		rowId = int(webinput["record"])
 
 		if web.ctx.session.get("username", None) == None:
 			return self.Render("Log in first")
 
-		recentChangeTracker = RecentChangeTracker(db)
-		record = Record(db, rowId, recentChangeTracker)
+
+		if "record" in webinput:
+			rowId = int(webinput["record"])
+
+
+			recentChangeTracker = RecentChangeTracker(db)
+			record = Record(db, rowId, recentChangeTracker)
+			plugins = GetPlugins(record.fixedData["source"])
+		else:
+			plugins = GetPlugins(None)
 
 		#Enumerate plugins
-		plugins = GetPlugins(record.fixedData["source"])
 		pluginInstances = []
 		for plugin in plugins:
 			baseModule = __import__("plugins."+plugin)
@@ -382,12 +388,15 @@ class PluginPage(object):
 		webinput = web.input()
 		pluginArg = webinput["plugin"]
 		action = webinput["action"]
-		rowId = int(webinput["record"])
 
-		record = Record(db, rowId)
+		if "record" in webinput:
+			rowId = int(webinput["record"])
+			record = Record(db, rowId)
+			plugins = GetPlugins(record.fixedData["source"])
+		else:
+			plugins = GetPlugins(None)
 
-		#Enumerate plugins
-		plugins = GetPlugins(record.fixedData["source"])
+		#Enumerate plugins		
 		pluginInstances = {}
 		for plugin in plugins:
 			baseModule = __import__("plugins."+plugin)
@@ -406,7 +415,32 @@ class PluginPage(object):
 			return app.RenderTemplate(template, webinput=webinput, session = web.ctx.session, **params)
 
 	def POST(self):
-		return GET(self)
+		db = web.ctx.db
+		webinput = web.input()
+		pluginArg = webinput["plugin"]
+		action = webinput["action"]
+
+		if "record" in webinput:
+			rowId = int(webinput["record"])
+			record = Record(db, rowId)
+			plugins = GetPlugins(record.fixedData["source"])
+		else:
+			record = None
+			plugins = GetPlugins(None)
+
+		#Enumerate plugins		
+		pluginInstances = {}
+		for plugin in plugins:
+			baseModule = __import__("plugins."+plugin)
+			pluginModule = getattr(baseModule, plugin)
+			pluginInstance = pluginModule.Plugin()
+			pluginInstances[plugin] = pluginInstance
+
+		if pluginArg in pluginInstances:
+			instance = pluginInstances[pluginArg]
+			response = instance.ProcessWebPost(db, webinput, record)
+
+		return self.GET()
 
 class RecentChanges(object):
 	def GET(self):

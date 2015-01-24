@@ -1,0 +1,52 @@
+<!doctype html> 
+<html>
+<head>
+<meta charset="utf-8"/> 
+<title>Link to Wikipedia</title>
+</head>
+<body>
+{% include 'inc-account-links.html' %}
+<h2>Link to Wikipedia</h2>
+
+{%if result|length > 0%}
+<form method="POST" action="">
+
+{%for record in result%}
+<h3><a href="{{record.url|e}}">{{record.title|e}}</a> {{record.lat}} {{record.lon}}</h3>
+<table>
+{%for nearby in record.nearby%}
+
+<tr>
+<td><input name="opt-{{nearby.fixedData.id|e}}-{{record.title|e}}" type="radio" value="unchanged" {%if nearby.selected==-1%} checked{%endif%}/></td>
+<td style="background-color:#beffb1;"><input name="opt-{{nearby.fixedData.id|e}}-{{record.title|e}}" type="radio" value="set" {%if nearby.selected==1%} checked{%endif%} /></td>
+<td style="background-color:#ffb1b1;"><input name="opt-{{nearby.fixedData.id|e}}-{{record.title|e}}" type="radio" value="unset" {%if nearby.selected==0%} checked{%endif%}/></td>
+<td>
+<a href="record?record={{nearby.fixedData.id|e}}">{{nearby.current.name|e}}</a>
+</td>
+</tr>
+{%endfor%}
+</table>
+
+{%endfor%}
+<input type="hidden" name="plugin" value="wikiEmbed"/>
+<input type="hidden" name="action" value="link"/>
+<p><input type="submit" value="Link articles with records"/></p>
+
+</form>
+{%endif%}
+
+<h3>New search</h3>
+<form method="GET" action="">
+<p>
+Search radius: <input type="text" name="radius" value="{{webinput.radius}}"/>metres<br/>
+<input type="hidden" name="lat" value="{{webinput.lat}}"/>
+<input type="hidden" name="lon" value="{{webinput.lon}}"/>
+<input type="submit" value="Search"/>
+<input type="hidden" name="plugin" value="wikiEmbed"/>
+<input type="hidden" name="action" value="link"/>
+</p>
+</form>
+
+</body>
+</html>
+

@@ -4,7 +4,10 @@
 <tr><td>{{k|e}}</td><td><input type="text" name="field_{{k|e}}" value="{{v|e}}"/></td></tr>
 {%endfor%}
 </table>
+{%if 'username' not in session or session.username == None %}
+{%else%}
 <input name="action" type="submit" value="Update record"/>
+{%endif%}
 </form>
 
 <table>

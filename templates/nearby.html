@@ -60,10 +60,12 @@
 
 <p>Number of records: {{records|length}}</p>
 
-<p><a href="nearbygpx?lat={{lat}}&lon={{lon}}">Export to GPX</a><br/>
+<p>
+<a href="nearbygpx?lat={{lat}}&lon={{lon}}">Export to GPX</a><br/>
 <a href="searchnear?lat={{lat}}&lon={{lon}}">Search new area</a><br/>
-<a href="recentchanges">Recent changes</a></p>
-
+<a href="recentchanges">Recent changes</a><br/>
+<a href="plugin?radius=10000&lat={{lat}}&lon={{lon}}&plugin=wikiEmbed&action=link">Batch link to Wikipedia</a>
+</p>
 </body>
 </html>
 
