@@ -1,5 +1,5 @@
 import urllib2, json, sqlitedict, time, os, web
-import mwparserfromhell
+import mwparserfromhell, webpages
 from xml.sax.saxutils import escape, unescape
 
 def SplitTextByParagraph(text, targetNumChars):
