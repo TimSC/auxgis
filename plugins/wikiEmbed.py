@@ -53,7 +53,7 @@ class MediawikiArticle(object):
 
 	def _RetrieveViaWeb(self, articleName):
 
-		url = u"https://en.wikipedia.org/w/api.php?format=json&action=query&titles={0}&prop=revisions&rvprop=content&continue=".format(urllib2.quote(articleName))
+		url = u"https://en.wikipedia.org/w/api.php?format=json&action=query&titles={0}&prop=revisions&rvprop=content&continue=".format(urllib2.quote(articleName.encode('utf8')))
 		#print url
 		ha = urllib2.urlopen(url)
 		result = ha.read()
@@ -120,7 +120,7 @@ class Plugin(object):
 			wikiEntry = {}
 			textExtract = SplitTextByParagraph(article.text, 1000)
 			wikiEntry["text"] = escape(textExtract).replace("\n", "<br/>")
-			wikiEntry["url"] = u"https://en.wikipedia.org/wiki/{0}".format(urllib2.quote(wikipediaArticle))
+			wikiEntry["url"] = u"https://en.wikipedia.org/wiki/{0}".format(urllib2.quote(wikipediaArticle.encode('utf8')))
 			wikiEntry["credit"] = "Wikipedia"
 			wikiEntry["article"] = wikipediaArticle
 
@@ -182,7 +182,7 @@ class Plugin(object):
 			searchResult = MediawikiSearch(lat, lon, webinput["radius"])
 			result = []
 			for r in searchResult.results:
-				r["url"] = u"https://en.wikipedia.org/wiki/{0}".format(urllib2.quote(r["title"]))
+				r["url"] = u"https://en.wikipedia.org/wiki/{0}".format(urllib2.quote(r["title"].encode('utf8')))
 				result.append(r)
 
 			out = {}
@@ -213,7 +213,7 @@ class Plugin(object):
 			searchResult = MediawikiSearch(lat, lon, webinput["radius"])
 			result = []
 			for r in searchResult.results:
-				r["url"] = u"https://en.wikipedia.org/wiki/{0}".format(urllib2.quote(r["title"]))
+				r["url"] = u"https://en.wikipedia.org/wiki/{0}".format(urllib2.quote(r["title"].encode('utf8')))
 				result.append(r)
 
 			#List nearby local records
@@ -257,7 +257,9 @@ if __name__ == "__main__":
 		wiki = MediawikiArticle("Stoughton Barracks")
 		print wiki.text
 	if 1:
-		wiki = MediawikiSearch(53., -1.2, 10000)
+		#wiki = MediawikiSearch(53., -1.2, 10000)
+		wiki = MediawikiSearch(51.07922714916926, 1.143951416015625, 10000)
+
 		for result in wiki.results:
 			print result
 
