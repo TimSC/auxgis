@@ -218,7 +218,7 @@ class Plugin(object):
 
 			#List nearby local records
 			for r in result:
-				nearbyRecords, nearbyMeta = webpages.GetRecordsNear(db, r["lat"], r["lon"])
+				nearbyRecords, nearbyMeta = webpages.GetRecordsNear(db, r["lat"], r["lon"], maxRecs = 10)
 				for nearRec in nearbyRecords:
 					if r["title"] == nearRec.current["wikipedia"]:
 						nearRec.selected = 1
@@ -232,7 +232,7 @@ class Plugin(object):
 					#b = r["title"]
 					#assert 0
 
-				r["nearby"] = nearbyRecords[:10]
+				r["nearby"] = nearbyRecords
 				r["meta"] = nearbyMeta
 
 			out = {}
