@@ -34,9 +34,10 @@ class DistLatLon(object):
 			return 0.
 		return math.pow(dist2, 0.5)
 
-def GetRecordsNear(db, lat, lon):
-	latHWidth = 0.05
-	lonHWidth = 0.1
+def GetRecordsNear(db, lat, lon, radius = 10.0, maxRecs = 100):
+
+	latHWidth = math.degrees(radius / 6371.)
+	lonHWidth = math.degrees(radius / (6371. * math.cos(math.radians(lat))))
 	vrs = {}
 	conds = []
 
@@ -55,7 +56,7 @@ def GetRecordsNear(db, lat, lon):
 	else:
 		cond = "1=1"
 
-	results = db.select("pos", where=cond, vars=vrs, limit = 1000)
+	results = db.select("pos", where=cond, vars=vrs)
 	sortableResults = []
 
 	if lat is not None and lon is not None:
@@ -63,30 +64,43 @@ def GetRecordsNear(db, lat, lon):
 	else:
 		calcDist = None
 
-	recordMeta = {}
-	for record in results:
-		rowId = record["id"]
+	resultsInRoi = []
+	for spatialRecord in results:
 		
-		#vars2 = {"id": rowId}
-		#dataResults = db.select("data", where="id=$id", vars= vars2, limit = 100)
-		#dataResults = list(dataResults)
-		#if len(dataResults) == 0: continue
-		#record = dict(dataResults[0])
+		rowId = spatialRecord["id"]
+		lat = 0.5 * (spatialRecord["minLat"] + spatialRecord["maxLat"])
+		lon = 0.5 * (spatialRecord["minLon"] + spatialRecord["maxLon"])
 
-		record = Record(db, rowId)
-
+		#Calculate distance from query location
 		if calcDist is not None:
-			dist = calcDist.Dist(record.current["lat"], record.current["lon"])
+			dist = calcDist.Dist(lat, lon)
 		else:
 			dist = None
 
+		#Check if in search area
+		if dist is not None and dist > radius:
+			continue		
+
+		resultsInRoi.append((dist, rowId))
+
+	#Sort records by distance from query location
+	resultsInRoi.sort()
+
+	#Limit number of results
+	if maxRecs is not None:
+		resultsInRoi = resultsInRoi[:maxRecs]
+
+	recordMeta = {}
+	records = []
+	for dist, rowId in resultsInRoi:
+
+		#Get complete record
+		record = Record(db, rowId)
+		records.append(record)
 		recordMeta[rowId] = {}
 		recordMeta[rowId]["dist"] = dist
-		sortableResults.append((dist, record))
 
-	sortableResults.sort()
-	records = [tmp[1] for tmp in sortableResults]
-
+	#Add extra flags
 	for record in records:
 		source = record.fixedData["source"]
 		rowId = record.fixedData["id"]
@@ -122,7 +136,7 @@ class Nearby(object):
 		records, recordsMeta = GetRecordsNear(db, lat, lon)
 
 		#Only consider a limited number of records
-		records=records[:100]
+		records=records[:]
 
 		#Enumerate plugins
 		plugins = GetPlugins()
