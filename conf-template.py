@@ -6,3 +6,5 @@ recaptchaEnabled = False
 recaptchaKey = ""
 recaptchaSecret = ""
 
+debug = False
+
