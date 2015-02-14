@@ -8,6 +8,14 @@
 <body onload="loadPage()">
 
 <script>
+function toRadians(deg) {
+	return deg * Math.PI / 180.;
+}
+
+function toDegrees(rad) {
+	return rad * 180. / Math.PI;
+}
+
 function loadPage() {
 
 	if (navigator.geolocation) {
@@ -16,12 +24,26 @@ function loadPage() {
 	  var currentLat;
 	  var currentLon;
 	  var currentMag = 0.;
+	  var dstlat = {{lat}};
+	  var dstlon = {{lon}};
 	  var geoSuccess = function(position) {
 		console.log("Position found: " + position.coords.latitude+ "," + position.coords.longitude)
-		currentLat = startPos.coords.latitude;
-		currentLon = startPos.coords.longitude;
-		document.getElementById('lat').value = startPos.coords.latitude;
-		document.getElementById('lon').value = startPos.coords.longitude;
+		currentLat = position.coords.latitude;
+		currentLon = position.coords.longitude;
+		document.getElementById('lat').value = currentLat;
+		document.getElementById('lon').value = currentLon;
+
+		//Based on http://www.movable-type.co.uk/scripts/latlong.html
+		var φ1 = toRadians(dstlat), φ2 = toRadians(currentLat), Δλ = toRadians(currentLon-dstlon), R = 6371000.; // gives d in metres
+		var d = Math.acos( Math.sin(φ1)*Math.sin(φ2) + Math.cos(φ1)*Math.cos(φ2) * Math.cos(Δλ) ) * R;
+		document.getElementById('dist').value = d;
+
+		var φ1 = toRadians(currentLat), φ2 = toRadians(dstlat), λ2 = toRadians(dstlon), λ1 = toRadians(currentLon), R = 6371000.;
+		var y = Math.sin(λ2-λ1) * Math.cos(φ2);
+		var x = Math.cos(φ1)*Math.sin(φ2) -
+				Math.sin(φ1)*Math.cos(φ2)*Math.cos(λ2-λ1);
+		var brng = toDegrees(Math.atan2(y, x));
+		document.getElementById('brng').value = brng;
 	  };
 
 	  var geoOptions = {
@@ -51,6 +73,8 @@ function loadPage() {
 	  {
 			currentMag = 360. - orient.alpha;
 			document.getElementById('mag').value = currentMag;
+
+
       };
 
       window.addEventListener("deviceorientation", orientEvent, true);
@@ -68,13 +92,19 @@ function loadPage() {
 <p>Current:</p>
 <input type="text" name="lat" id="lat" value=""/> Latitude (degrees)<br/>
 <input type="text" name="lon" id="lon" value=""/> Longitude (degrees)<br/>
-<input type="text" name="lon" id="mag" value="0."/> Heading (degrees)<br/>
+<input type="text" id="mag" value="0."/> Heading (degrees)<br/>
 
 <p>Destination</p>
-<input type="text" name="lat" id="dstlat" value="{{lat}}"/> Latitude (degrees)<br/>
-<input type="text" name="lon" id="dstlon" value="{{lon}}"/> Longitude (degrees)<br/>
+<input type="text" id="dstlat" value="{{lat}}"/> Latitude (degrees)<br/>
+<input type="text" id="dstlon" value="{{lon}}"/> Longitude (degrees)<br/>
 
+<p>Stats</p>
+<input type="text" id="dist" value=""/> Distance (metres)<br/>
+<input type="text" id="brng" value=""/> Bearing (degrees)<br/>
 
+<div style="width:300px; height:300px; display:block;">Compass area</div>
+
+<p>Here</p>
 
 </body>
 </html>
