@@ -7,6 +7,7 @@
 </head>
 <body onload="loadPage()">
 
+{%if lat == None%}
 <script>
 function loadPage() {
 
@@ -15,33 +16,50 @@ function loadPage() {
 
 	  var startPos;
 	  var geoSuccess = function(position) {
+		console.log("Position found: " + position.coords.latitude+ "," + position.coords.longitude)
 		startPos = position;
-		document.getElementById('lat').innerHTML = startPos.coords.latitude;
-		document.getElementById('lon').innerHTML = startPos.coords.longitude;
+		document.getElementById('lat').value = startPos.coords.latitude;
+		document.getElementById('lon').value = startPos.coords.longitude;
 	  };
 
 	  var geoOptions = {
-		 timeout: 10 * 1000,
-		 enableHighAccuracy: true
+		 timeout: 60 * 1000,
+		 maximumAge: 5 * 60 * 1000,
+		enableHighAccuracy: true,
 	  }
 
-	  var geoError = function(position) {
-		console.log('Error occurred. Error code: ' + error.code);
-		// error.code can be:
-		//   0: unknown error
-		//   1: permission denied
-		//   2: position unavailable (error response from location provider)
-		//   3: timed out
+	  var geoError = function(error) {
+		console.log('Error occurred. Error code: ' + error.code + ' ' + error.message);
+
+		switch(error.code) {
+			case error.PERMISSION_DENIED:
+				alert('Location error occurred: '+ error.message);
+			case error.POSITION_UNAVAILABLE:
+				alert('Location error occurred: '+ error.message);
+	        case error.TIMEOUT:
+				alert('Location error occurred: '+ error.message);
+    	    case error.UNKNOWN_ERROR:
+				alert('Location error occurred: '+ error.message);
+		}
 	  };
 
 	  navigator.geolocation.getCurrentPosition(geoSuccess, geoError, geoOptions);
 	}
 	else {
 	  console.log('Geolocation is not supported for this Browser/OS version yet.');
+		document.getElementById('lat').value = 53.;
+		document.getElementById('lon').value = -1.0;
 	}
 
 }
 </script>
+{%else%}
+<script>
+function loadPage() {
+
+}
+</script>
+{%endif%}
 
 {% include 'inc-account-links.html' %}
 <h2>Search Near</h2>
@@ -59,8 +77,11 @@ function loadPage() {
 </form>
 
 <script>
-
+{%if lat != None%}
 	var map = L.map('map').setView([{{lat}}, {{lon}}], 7);
+{%else%}
+	var map = L.map('map').setView([53.0, -1.0], 7);
+{%endif%}
 
 	function onMapClick(e) {
 		//alert("You clicked the map at " + e.latlng);

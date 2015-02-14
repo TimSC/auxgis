@@ -439,8 +439,8 @@ class SearchNear(object):
 		db = web.ctx.db
 		webinput = web.input()
 
-		lat = 53.
-		lon = -1.2
+		lat = None
+		lon = None
 		if "lat" in webinput:
 			try:
 				lat = float(webinput["lat"])
@@ -453,6 +453,27 @@ class SearchNear(object):
 				pass
 
 		return app.RenderTemplate("searchnear.html", webinput=webinput, lat=lat, lon=lon, session = web.ctx.session)
+
+class Nav(object):
+	def GET(self):
+		db = web.ctx.db
+		webinput = web.input()
+
+		lat = 53.0
+		lon = -1.0
+		if "lat" in webinput:
+			try:
+				lat = float(webinput["lat"])
+			except:
+				pass
+		if "lon" in webinput:
+			try:
+				lon = float(webinput["lon"])
+			except:
+				pass
+
+		return app.RenderTemplate("nav.html", webinput=webinput, lat=lat, lon=lon, session = web.ctx.session)
+
 
 class PluginPage(object):
 	def GET(self):

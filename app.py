@@ -23,6 +23,7 @@ urls = (
 	'/plugin', 'webpages.PluginPage',
 	'/recentchanges', 'webpages.RecentChanges',
 	'/longnames', 'webpages.LongNames',
+	'/nav', 'webpages.Nav',
 	)
 
 def Jinja2DateTime(value):

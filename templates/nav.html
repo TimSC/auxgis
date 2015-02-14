@@ -1,0 +1,81 @@
+<!doctype html> 
+<html>
+<head>
+<meta charset="utf-8"/> 
+<title>Search Near</title>
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+</head>
+<body onload="loadPage()">
+
+<script>
+function loadPage() {
+
+	if (navigator.geolocation) {
+	  console.log('Geolocation is supported!');
+
+	  var currentLat;
+	  var currentLon;
+	  var currentMag = 0.;
+	  var geoSuccess = function(position) {
+		console.log("Position found: " + position.coords.latitude+ "," + position.coords.longitude)
+		currentLat = startPos.coords.latitude;
+		currentLon = startPos.coords.longitude;
+		document.getElementById('lat').value = startPos.coords.latitude;
+		document.getElementById('lon').value = startPos.coords.longitude;
+	  };
+
+	  var geoOptions = {
+		 timeout: 60 * 1000,
+		 maximumAge: 5 * 60 * 1000,
+		enableHighAccuracy: true,
+	  };
+
+	  var geoError = function(error) {
+		console.log('Error occurred. Error code: ' + error.code + ' ' + error.message);
+
+		switch(error.code) {
+			case error.PERMISSION_DENIED:
+				alert('Location error occurred: '+ error.message);
+			case error.POSITION_UNAVAILABLE:
+				alert('Location error occurred: '+ error.message);
+	        case error.TIMEOUT:
+				alert('Location error occurred: '+ error.message);
+    	    case error.UNKNOWN_ERROR:
+				alert('Location error occurred: '+ error.message);
+		}
+	  };
+
+	  navigator.geolocation.watchPosition(geoSuccess, geoError, geoOptions);
+
+	  var orientEvent = function(orient)
+	  {
+			currentMag = 360. - orient.alpha;
+			document.getElementById('mag').value = currentMag;
+      };
+
+      window.addEventListener("deviceorientation", orientEvent, true);
+	}
+	else {
+	  console.log('Geolocation is not supported for this Browser/OS version yet.');
+	}
+
+}
+</script>
+
+{% include 'inc-account-links.html' %}
+<h2>Nav to</h2>
+
+<p>Current:</p>
+<input type="text" name="lat" id="lat" value=""/> Latitude (degrees)<br/>
+<input type="text" name="lon" id="lon" value=""/> Longitude (degrees)<br/>
+<input type="text" name="lon" id="mag" value="0."/> Heading (degrees)<br/>
+
+<p>Destination</p>
+<input type="text" name="lat" id="dstlat" value="{{lat}}"/> Latitude (degrees)<br/>
+<input type="text" name="lon" id="dstlon" value="{{lon}}"/> Longitude (degrees)<br/>
+
+
+
+</body>
+</html>
+
