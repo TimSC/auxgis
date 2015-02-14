@@ -41,11 +41,15 @@
 	marker{{record.fixedData.id}}.bindPopup("<a href='record?record={{record.fixedData.id}}'>{{record.current.name|e}}</a>")
 {%endfor%}
 </script>
-
+<form method="POST">
 <table>
 {%for record in records%}
 
-<tr><td>{%if recordsMeta[record.fixedData.id].dist != None%}{{'%0.1f' % recordsMeta[record.fixedData.id].dist}}{%endif%}</td><td><a href="record?record={{record.fixedData.id}}">{{record.current.name|e}}</a></td>
+<tr>
+<td><input name="poioption{{record.fixedData.id}}" type="checkbox"{%if record.fixedData.id in userPoisDict%}{%if userPoisDict[record.fixedData.id].toVisit == 1%} checked{%endif%}{%endif%}/>
+<input name="poilisted{{record.fixedData.id}}" type="hidden"/>
+</td>
+<td>{%if recordsMeta[record.fixedData.id].dist != None%}{{'%0.1f' % recordsMeta[record.fixedData.id].dist}}{%endif%}</td><td><a href="record?record={{record.fixedData.id}}">{{record.current.name|e}}</a></td>
 <td>{{record.fixedData.source|e}}
 {%if record.fixedData.source == "ListedBuildings"%}
 {{record.current.Grade}}
@@ -57,6 +61,9 @@
 </tr>
 {%endfor%}
 </table>
+
+<p><input type="submit" name="update-pois" value="Update sites to visit"/></p>
+</form>
 
 <p>Number of records: {{records|length}}</p>
 

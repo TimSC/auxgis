@@ -123,6 +123,44 @@ class FrontPage(object):
 
 class Nearby(object):
 	def GET(self):
+		return self.Render()
+
+	def POST(self):
+		db = web.ctx.db
+		webinput = web.input()
+		
+		if "update-pois" in webinput and web.ctx.session.get("username", None) != None:
+
+			#Determine which POIs where selected
+			listedPoi = set()
+			selectedPoi = set()
+			for k in webinput:
+				if k[:9] == "poilisted":
+					listedPoi.add(int(k[9:]))
+				if k[:9] == "poioption":
+					selectedPoi.add(int(k[9:]))
+			notSelectedPoi = set()
+			for poi in listedPoi:
+				if poi not in selectedPoi:
+					notSelectedPoi.add(poi)
+		
+			#Update database
+			for poi in selectedPoi:
+				rowsAffected = db.update("pois", toVisit = 1, 
+					where="recordId=$recordId AND username=$username", 
+					vars={"recordId": poi, "username": web.ctx.session.username})
+				if rowsAffected == 0:
+					db.insert("pois", toVisit = 1, 
+						recordId=poi, username=web.ctx.session.username)
+
+			for poi in notSelectedPoi:
+				rowsAffected = db.update("pois", toVisit = 0, 
+					where="recordId=$recordId AND username=$username", 
+					vars={"recordId": poi, "username": web.ctx.session.username})
+
+		return self.Render()
+
+	def Render(self):
 		db = web.ctx.db
 		webinput = web.input()
 		try:
@@ -161,9 +199,29 @@ class Nearby(object):
 			recMeta = recordsMeta[rowId]
 			recMeta["pluginStr"] = " ".join(recMeta["pluginData"])
 
+		#Get user POI info from database
+		if web.ctx.session.get("username", None) != None and len(records) > 0:
+			sql = ["SELECT * FROM pois WHERE username=$username AND ("]
+			sql2 = []
+			for record in records:
+				rowId = record.fixedData["id"]
+				sql2.append("recordId = {0}".format(rowId))
+
+			sql.append(" OR ".join(sql2))
+			sql.append(");")
+
+			userPois = db.query("".join(sql), vars={"username": web.ctx.session.username})
+			userPoisDict = {}
+			for poi in userPois:
+				userPoisDict[poi["recordId"]] = poi
+		else:
+			userPoisDict = {}
+
 		return app.RenderTemplate("nearby.html", records=records, 
 			recordsMeta = recordsMeta,
-			webinput=webinput, lat=lat, lon=lon, session = web.ctx.session)
+			webinput=webinput, lat=lat, lon=lon, 
+			userPoisDict = userPoisDict,
+			session = web.ctx.session)
 
 class NearbyGpx(object):
 	def GET(self):

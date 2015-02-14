@@ -6,13 +6,14 @@ if __name__=="__main__":
 
 	c = conn.cursor()
 
-	# Create tables
+	# Spatial index
 	try:
 		c.execute('''CREATE VIRTUAL TABLE pos USING rtree(id, minLat, maxLat, minLon, maxLon);''')
 
 	except Exception as err:
 		print "Could not create table pos,", err
 
+	#Meta data table
 	try:
 		c.execute('''CREATE TABLE data
 				(id INTEGER PRIMARY KEY AUTOINCREMENT, 
@@ -26,6 +27,7 @@ if __name__=="__main__":
 	except Exception as err:
 		print "Could not create table data,", err
 
+	#User table
 	usersc = users.cursor()
 
 	try:
@@ -44,6 +46,8 @@ if __name__=="__main__":
 	except Exception as err:
 		print "Could not create index username_index,", err
 
+	#Recent changes table
+
 	try:
 		c.execute('''CREATE TABLE recentchanges
 				(id INTEGER PRIMARY KEY AUTOINCREMENT, 
@@ -54,6 +58,20 @@ if __name__=="__main__":
 				);''')
 	except Exception as err:
 		print "Could not create table recentchanges,", err
+
+
+	#User POIs
+
+	try:
+		c.execute('''CREATE TABLE pois
+				(id INTEGER PRIMARY KEY AUTOINCREMENT, 
+				username text, 
+				recordId INTEGER,
+				toVisit INTEGER,
+				visitedDates TEXT
+				);''')
+	except Exception as err:
+		print "Could not create table pois,", err
 
 	conn.commit()
 	users.commit()
