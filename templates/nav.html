@@ -16,6 +16,49 @@ function toDegrees(rad) {
 	return rad * 180. / Math.PI;
 }
 
+function drawArrow(r) {
+	g_ArrHeight = 48;
+    var ctx = document.getElementById('compass').getContext('2d');
+    ctx.clearRect(0, 0, g_ArrHeight*4, g_ArrHeight*4);
+    var state = ctx.save();
+    var fulld3 = g_ArrHeight/3;
+    var fulld2 = g_ArrHeight/2;
+    ctx.translate(g_ArrHeight*2, g_ArrHeight*2);
+    ctx.rotate(r);
+
+    ctx.beginPath();
+    ctx.strokeStyle = '#aaaaff';
+    ctx.lineWidth = 5;
+
+    ctx.moveTo(0, -g_ArrHeight);
+    ctx.lineTo(g_ArrHeight, fulld3);
+    ctx.lineTo(fulld2, fulld3);
+    ctx.lineTo(fulld2, g_ArrHeight);
+    ctx.lineTo(-fulld2, g_ArrHeight);
+    ctx.lineTo(-fulld2, fulld3);
+    ctx.lineTo(-g_ArrHeight, fulld3);
+
+    ctx.closePath();
+    ctx.stroke();
+    ctx.fillStyle="#33ff33";
+    ctx.fill();
+
+    ctx.restore(state);
+}
+
+function relativeBearing(b1, b2)
+{
+	b1y = Math.cos(b1);
+	b1x = Math.sin(b1);
+	b2y = Math.cos(b2);
+	b2x = Math.sin(b2);
+	crossp = b1y * b2x - b2y * b1x;
+	dotp = b1x * b2x + b1y * b2y;
+	if(crossp > 0.)
+		return Math.acos(dotp);
+	return -Math.acos(dotp);
+}
+
 function loadPage() {
 
 	if (navigator.geolocation) {
@@ -24,6 +67,7 @@ function loadPage() {
 	  var currentLat;
 	  var currentLon;
 	  var currentMag = 0.;
+      var dstbrng = 0.;
 	  var dstlat = {{lat}};
 	  var dstlon = {{lon}};
 	  var geoSuccess = function(position) {
@@ -42,8 +86,12 @@ function loadPage() {
 		var y = Math.sin(λ2-λ1) * Math.cos(φ2);
 		var x = Math.cos(φ1)*Math.sin(φ2) -
 				Math.sin(φ1)*Math.cos(φ2)*Math.cos(λ2-λ1);
-		var brng = toDegrees(Math.atan2(y, x));
-		document.getElementById('brng').value = brng;
+		dstbrng = toDegrees(Math.atan2(y, x));
+		document.getElementById('brng').value = dstbrng;
+
+		var rel = relativeBearing(toRadians(currentMag), toRadians(dstbrng));
+		document.getElementById('rel').value = toDegrees(rel);
+		drawArrow(rel);
 	  };
 
 	  var geoOptions = {
@@ -74,10 +122,16 @@ function loadPage() {
 			currentMag = 360. - orient.alpha;
 			document.getElementById('mag').value = currentMag;
 
-
+			rel = relativeBearing(toRadians(currentMag), toRadians(dstbrng));
+			document.getElementById('rel').value = toDegrees(rel);
+			drawArrow(rel);
       };
 
       window.addEventListener("deviceorientation", orientEvent, true);
+
+      var oc = document.getElementById('compass');
+      oc.width = 50 * 4;
+      oc.height = 50 * 4;  
 	}
 	else {
 	  console.log('Geolocation is not supported for this Browser/OS version yet.');
@@ -90,21 +144,20 @@ function loadPage() {
 <h2>Nav to</h2>
 
 <p>Current:</p>
-<input type="text" name="lat" id="lat" value=""/> Latitude (degrees)<br/>
-<input type="text" name="lon" id="lon" value=""/> Longitude (degrees)<br/>
+<input type="text" name="lat" id="lat" value=""/> Latitude (deg)<br/>
+<input type="text" name="lon" id="lon" value=""/> Longitude (deg)<br/>
 <input type="text" id="mag" value="0."/> Heading (degrees)<br/>
-
+<div style="display:none;">
 <p>Destination</p>
-<input type="text" id="dstlat" value="{{lat}}"/> Latitude (degrees)<br/>
-<input type="text" id="dstlon" value="{{lon}}"/> Longitude (degrees)<br/>
+<input type="text" id="dstlat" value="{{lat}}"/> Latitude (deg)<br/>
+<input type="text" id="dstlon" value="{{lon}}"/> Longitude (deg)<br/>
 
 <p>Stats</p>
-<input type="text" id="dist" value=""/> Distance (metres)<br/>
 <input type="text" id="brng" value=""/> Bearing (degrees)<br/>
-
-<div style="width:300px; height:300px; display:block;">Compass area</div>
-
-<p>Here</p>
+<input type="text" id="rel" value=""/><br/>
+</div>
+<canvas id="compass" style="width:300px; height:300px; display:block;">Compass area</canvas>
+<input type="text" id="dist" value=""/> Distance (metres)<br/>
 
 </body>
 </html>
